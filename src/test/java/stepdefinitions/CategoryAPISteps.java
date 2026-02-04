@@ -14,14 +14,15 @@ import utils.ConfigLoader;
 public class CategoryAPISteps {
     private String token;
     private Response response;
+    private pages.LoginPage loginPage;
 
     @Given("I have a valid {string} token")
     public void i_have_a_valid_token(String role) {
-        // Fetch token from config.properties
+        // Fetch token dynamically using AuthHelper
         if (role.equals("User")) {
-            token = ConfigLoader.getProperty("user.token");
+            token = utils.AuthHelper.getUserToken();
         } else if (role.equals("Admin")) {
-            token = ConfigLoader.getProperty("admin.token");
+            token = utils.AuthHelper.getAdminToken();
         }
     }
 
@@ -110,9 +111,18 @@ public class CategoryAPISteps {
 
     @Given("I login as a {string}")
     public void i_login_as_a(String role) {
-        // UI Login
-        // BaseTest.getDriver().get(loginUrl);
-        // ...
+        String username = "";
+        String password = "";
+
+        if (role.equals("User")) {
+            username = ConfigLoader.getProperty("user.username");
+            password = ConfigLoader.getProperty("user.password");
+        } else if (role.equals("Admin")) {
+            username = ConfigLoader.getProperty("admin.username");
+            password = ConfigLoader.getProperty("admin.password");
+        }
+
+        loginPage.login(username, password);
     }
 
     @Given("I login as an {string}")
@@ -127,6 +137,7 @@ public class CategoryAPISteps {
 
     @Given("I am on the Login page")
     public void i_am_on_the_login_page() {
-        // nav
+        loginPage = new pages.LoginPage(utils.BaseTest.getDriver());
+        loginPage.navigateTo();
     }
 }

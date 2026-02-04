@@ -6,7 +6,7 @@ import io.restassured.specification.RequestSpecification;
 import java.util.Map;
 
 public class CategoryApiHelper {
-    private static final String BASE_URI = "http://localhost:8080/api";
+    private static final String BASE_URI = utils.ConfigLoader.getProperty("api.base.url");
 
     public static Response getAllCategories(String token) {
         return RestAssured.given()
@@ -35,6 +35,12 @@ public class CategoryApiHelper {
                 .contentType("application/json")
                 .body(body)
                 .put(BASE_URI + "/categories/" + id);
+    }
+
+    public static Response deleteCategory(String token, int id) {
+        return RestAssured.given()
+                .header("Authorization", "Bearer " + token)
+                .delete(BASE_URI + "/categories/" + id);
     }
 
     public static Response getCategoriesNoAuth() {
