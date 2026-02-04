@@ -15,10 +15,12 @@ public class CategoryApiHelper {
     }
 
     public static Response getCategoriesWithParams(String token, Map<String, Object> params) {
-        return RestAssured.given()
+        Response resp = RestAssured.given()
                 .header("Authorization", "Bearer " + token)
                 .queryParams(params)
                 .get(BASE_URI + "/categories");
+        resp.then().log().ifError();
+        return resp;
     }
 
     public static Response getCategoriesNoAuth() {
@@ -50,6 +52,16 @@ public class CategoryApiHelper {
                 .contentType("application/json")
                 .body(body)
                 .put(BASE_URI + "/categories/" + id);
+        resp.then().log().ifError();
+        return resp;
+    }
+
+    public static Response getCategoriesPageWithParams(String token, Map<String, Object> params) {
+        Response resp = RestAssured.given()
+                .header("Authorization", "Bearer " + token)
+                .queryParams(params)
+                .get(BASE_URI + "/categories/page");
+
         resp.then().log().ifError();
         return resp;
     }

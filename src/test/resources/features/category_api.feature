@@ -50,7 +50,7 @@ Feature: Category Management API
       """
     Then the response status code should be 403
 
-  @User @API @TC-USER-API-CAT-006
+  @User @API @TC-ADMIN-API-CAT-006
   Scenario: Attempt to update a category as User (unauthorized)
     Given I have a valid "User" token
     And a category with ID 1 exists
@@ -155,3 +155,47 @@ Feature: Category Management API
       """
     Then the response status code should be 400
     And the response should contain validation error for name too long
+
+  @User @API @TC-USER-API-CAT-006
+  Scenario: Filter categories by parent category via API (positive)
+    Given I have a valid "User" token
+    When I send a GET request to "/api/categories" with params:
+      | parentId | 1 |
+    Then the response status code should be 200
+    And the response should contain at least one category
+    And all categories in response should have parent_id 1
+
+  @User @API @TC-USER-API-CAT-007
+  Scenario: Filter categories by parent category via API (no results)
+    Given I have a valid "User" token
+    When I send a GET request to "/api/categories" with params:
+      | parentId | 12 |
+    Then the response status code should be 200
+    And the response filtered list should be empty
+
+  @User @API @TC-USER-API-CAT-008
+  Scenario: Sort categories by ID via API
+    Given I have a valid "User" token
+    When I send a GET request to "/api/categories/page" with params:
+      | sortField | id  |
+      | sortDir   | desc |
+    Then the response status code should be 200
+    And the response list should be sorted by "id" ascending
+
+  @User @API @TC-USER-API-CAT-009
+  Scenario: Sort categories by name via API (page endpoint)
+    Given I have a valid "User" token
+    When I send a GET request to "/api/categories/page" with params:
+      | sortField | name |
+      | sortDir   | desc  |
+    Then the response status code should be 200
+    And the response list should be sorted by "name" ascending
+
+  @User @API @TC-USER-API-CAT-010
+  Scenario: Sort categories by name via API (page endpoint)
+    Given I have a valid "User" token
+    When I send a GET request to "/api/categories/page" with params:
+      | sortField | parentId |
+      | sortDir   | desc  |
+    Then the response status code should be 200
+    And the response list should be sorted by "name" ascending

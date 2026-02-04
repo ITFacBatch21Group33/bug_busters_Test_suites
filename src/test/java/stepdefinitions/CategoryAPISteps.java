@@ -1,5 +1,6 @@
 package stepdefinitions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,11 @@ public class CategoryAPISteps {
     @When("I send a GET request to {string} with params:")
     public void i_send_a_get_request_to_with_params(String endpoint, Map<String, String> params) {
         Map<String, Object> queryParams = new HashMap<>(params);
-        response = CategoryApiHelper.getCategoriesWithParams(token, queryParams);
+        if (endpoint != null && endpoint.contains("/categories/page")) {
+        response = CategoryApiHelper.getCategoriesPageWithParams(token, queryParams);
+        } else {
+            response = CategoryApiHelper.getCategoriesWithParams(token, queryParams);
+        }
     }
 
     @Then("the response status code should be {int}")
@@ -81,6 +86,124 @@ public class CategoryAPISteps {
         List<?> list = response.jsonPath().getList("$");
         Assert.assertTrue(list == null || list.isEmpty());
     }
+
+    //Filter Categories by parent_id
+
+    @Then("the response should contain at least one category")
+    public void the_response_should_contain_at_least_one_category() {
+        List<Map<String, Object>> categories = extractCategories(response);
+        Assert.assertNotNull(categories, "No categories list found in response");
+        Assert.assertFalse(categories.isEmpty(), "Expected at least 1 category but got empty list. Body: " + response.asString());
+    }
+
+    @Then("all categories in response should have parent_id {int}")
+    public void all_categories_in_response_should_have_parent_id(int parentId) {
+        List<Map<String, Object>> categories = extractCategories(response);
+        Assert.assertNotNull(categories, "No categories list found. Body: " + response.asString());
+        Assert.assertFalse(categories.isEmpty(), "Expected non-empty filtered results. Body: " + response.asString());
+
+        Response parentResp = CategoryApiHelper.getCategoryById(token, parentId);
+        Assert.assertEquals(parentResp.getStatusCode(), 200, "Could not fetch parent category " + parentId);
+        String expectedParentName = parentResp.jsonPath().getString("name");
+        Assert.assertNotNull(expectedParentName, "Parent category has no 'name' field");
+
+        for (Map<String, Object> category : categories) {
+            String actualParentName = null;
+            Object v = category.get("parentName");
+            if (v == null) v = category.get("parent");
+            if (v != null) actualParentName = String.valueOf(v);
+
+            Assert.assertNotNull(actualParentName, "Category missing parent name field: " + category);
+            Assert.assertEquals(actualParentName, expectedParentName, "Category belongs to wrong parent: " + category);
+        }
+    }
+
+    private List<Map<String, Object>> extractCategories(Response resp) {
+        Assert.assertNotNull(resp, "No response captured");
+
+        // Common response shapes: [] OR {content: []} OR {data: []} OR {data: {content: []}}
+        List<Map<String, Object>> list = safeGetList(resp, "$");
+        if (list != null) return list;
+
+        list = safeGetList(resp, "content");
+        if (list != null) return list;
+
+        list = safeGetList(resp, "data");
+        if (list != null) return list;
+
+        list = safeGetList(resp, "data.content");
+        if (list != null) return list;
+
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> safeGetList(Response resp, String path) {
+        try {
+            List<?> raw = resp.jsonPath().getList(path);
+            if (raw == null) return null;
+
+            // Ensure it’s actually a list of objects/maps
+            List<Map<String, Object>> mapped = new ArrayList<>();
+            for (Object o : raw) {
+                if (!(o instanceof Map)) return null;
+                mapped.add((Map<String, Object>) o);
+            }
+            return mapped;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    @Then("the response filtered list should be empty")
+    public void the_response_filtered_list_should_be_empty() {
+        Assert.assertNotNull(response, "No response captured");
+
+        List<?> root = null;
+        try { root = response.jsonPath().getList("$"); } catch (Exception ignored) {}
+
+        if (root != null) {
+            Assert.assertTrue(root.isEmpty(), "Expected empty list but got: " + response.asString());
+            return;
+        }
+
+        List<Map<String, Object>> categories = extractCategories(response);
+        Assert.assertNotNull(categories, "No categories list found. Body: " + response.asString());
+        Assert.assertTrue(categories.isEmpty(), "Expected empty list but got: " + response.asString());
+    }
+
+    // Sort categories
+    @Then("the response list should be sorted by {string} ascending")
+    public void the_response_list_should_be_sorted_by_ascending(String field) {
+        List<Map<String, Object>> categories = extractCategories(response);
+        Assert.assertNotNull(categories, "No categories list found. Body: " + response.asString());
+        Assert.assertFalse(categories.isEmpty(), "Expected non-empty list to verify sorting. Body: " + response.asString());
+
+        for (int i = 1; i < categories.size(); i++) {
+            Object prev = categories.get(i - 1).get(field);
+            Object curr = categories.get(i).get(field);
+
+            Assert.assertTrue(compareValues(prev, curr) <= 0,
+                    "List is not sorted by [" + field + "] ascending at index " + i +
+                            " (prev=" + prev + ", curr=" + curr + "). Body: " + response.asString());
+        }
+    }
+
+    private int compareValues(Object a, Object b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+
+        // Numeric compare when possible (covers id sorting)
+        try {
+            double da = Double.parseDouble(String.valueOf(a));
+            double db = Double.parseDouble(String.valueOf(b));
+            return Double.compare(da, db);
+        } catch (Exception ignored) {
+            return String.valueOf(a).compareToIgnoreCase(String.valueOf(b));
+        }
+    }
+
 
     @When("I send a POST request to {string} with body:")
     public void i_send_a_post_request_to_with_body(String endpoint, String body) {
@@ -196,16 +319,6 @@ public class CategoryAPISteps {
         Response getResp = CategoryApiHelper.getCategoryById(token, id);
         Assert.assertEquals(getResp.getStatusCode(), 200,
                 "Precondition failed: category " + id + " does not exist (GET did not return 200)");
-    }
-
-    @Then("all categories in response should have parent_id {int}")
-    public void all_categories_in_response_should_have_parent_id(int parentId) {
-        // Verify
-    }
-
-    @Then("the response list should be sorted by {string} ascending")
-    public void the_response_list_should_be_sorted_by_ascending(String field) {
-        // Verify sort
     }
 
     @Given("I login as a {string}")
