@@ -13,7 +13,6 @@ import static io.restassured.RestAssured.given;
 public class SalesAPISteps {
     private SalesApiHelper salesApiHelper;
     private Response response;
-    private int createdSaleId;
 
     public SalesAPISteps() {
         String apiBaseUrl = ConfigLoader.getProperty("base.url");
@@ -40,7 +39,7 @@ public class SalesAPISteps {
             username = ConfigLoader.getProperty("user.username");
             password = ConfigLoader.getProperty("user.password");
             if (username == null) username = "testuser";
-            if (password == null) password = "password123";
+            if (password == null) password = "test123";
         }
 
         try {
@@ -83,14 +82,7 @@ public class SalesAPISteps {
 
     @When("I send a POST request to create a sale for plant {int} with quantity {int}")
     public void i_send_a_post_request_to_create_a_sale(int plantId, int quantity) {
-        response = salesApiHelper.createSale(plantId, quantity, "Test Buyer");
-        if (response.getStatusCode() == 201) {
-            try {
-                createdSaleId = response.jsonPath().getInt("id");
-            } catch (Exception e) {
-                // Sale created but ID extraction failed
-            }
-        }
+        response = salesApiHelper.createSale(plantId, quantity);
     }
 
     @When("I send a POST request to create a sale for plant {int} with invalid quantity {int}")

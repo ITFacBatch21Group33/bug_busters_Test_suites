@@ -61,7 +61,7 @@ public class SalesApiHelper {
                 .response();
     }
 
-    public Response createSale(int plantId, int quantity, String buyerName) {
+    public Response createSale(int plantId, int quantity) {
         return getRequestSpec()
                 .queryParam("quantity", quantity)
                 .when()

@@ -11,6 +11,21 @@ import utils.ConfigLoader;
 public class SalesUISteps extends BaseTest {
     private SalesPage salesPage;
 
+    // @Given("I login as an {string}")
+    // public void i_login_as(String role) {
+    //     LoginPage loginPage = new LoginPage(driver);
+        
+    //     if (role.equalsIgnoreCase("Admin")) {
+    //         String username = ConfigLoader.getProperty("admin.username", "admin");
+    //         String password = ConfigLoader.getProperty("admin.password", "admin123");
+    //         loginPage.login(username, password);
+    //     } else {
+    //         String username = ConfigLoader.getProperty("user.username", "testuser");
+    //         String password = ConfigLoader.getProperty("user.password", "password123");
+    //         loginPage.login(username, password);
+    //     }
+    // }
+
     @Given("a plant with name {string} exists")
     public void a_plant_with_name_exists(String plantName) {
         // Plant should exist in database for test to work
