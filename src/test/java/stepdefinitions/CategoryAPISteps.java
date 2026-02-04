@@ -1,19 +1,22 @@
 package stepdefinitions;
 
-import api.CategoryApiHelper;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.When;
-import io.cucumber.java.en.Then;
-import io.restassured.response.Response;
-import org.testng.Assert;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.testng.Assert;
+
+import api.CategoryApiHelper;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.response.Response;
 import utils.ConfigLoader;
 
 public class CategoryAPISteps {
     private String token;
     private Response response;
+    private String lastRequestedCategoryName;
 
     @Given("I have a valid {string} token")
     public void i_have_a_valid_token(String role) {
@@ -81,7 +84,83 @@ public class CategoryAPISteps {
 
     @When("I send a POST request to {string} with body:")
     public void i_send_a_post_request_to_with_body(String endpoint, String body) {
-        response = CategoryApiHelper.createCategory(token, body);
+        // Added random suffix to avoid duplicates
+        String resolvedBody = body.replace("${suffix}", randomLetters(3));
+        lastRequestedCategoryName = extractName(resolvedBody);
+
+        response = CategoryApiHelper.createCategory(token, resolvedBody);
+    }
+
+    private String extractName(String jsonText) {
+        java.util.regex.Matcher matcher =
+                java.util.regex.Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"").matcher(jsonText);
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
+    private String randomLetters(int len) {
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        java.util.Random r = new java.util.Random();
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++) sb.append(alphabet.charAt(r.nextInt(alphabet.length())));
+        return sb.toString();
+    }
+
+    @Then("the response should contain validation error for missing name")
+    public void the_response_should_contain_validation_error_for_missing_name() {
+        assertMessageEquals("Validation failed");
+        assertDetailsNameEquals("Category name is mandatory");
+    }
+
+    @Then("the response should contain validation error for name too short")
+    public void the_response_should_contain_validation_error_for_name_too_short() {
+        assertMessageEquals("Validation failed");
+        assertDetailsNameContains("between 3 and 10");
+    }
+
+    @Then("the response should contain validation error for name too long")
+    public void the_response_should_contain_validation_error_for_name_too_long() {
+        assertMessageEquals("Validation failed");
+        assertDetailsNameContains("between 3 and 10");
+    }
+
+    private void assertMessageEquals(String expectedMessage) {
+        Assert.assertNotNull(response, "No response captured");
+
+        String body = null;
+        try { body = response.asString(); } catch (Exception ignored) {}
+
+        String actual = null;
+        try { actual = response.jsonPath().getString("message"); } catch (Exception ignored) {}
+
+        Assert.assertNotNull(actual, "No 'message' field in response. Body: " + body);
+        Assert.assertEquals(actual, expectedMessage, "Unexpected 'message'. Body: " + body);
+    }
+
+    private void assertDetailsNameEquals(String expectedDetailsName) {
+        Assert.assertNotNull(response, "No response captured");
+
+        String body = null;
+        try { body = response.asString(); } catch (Exception ignored) {}
+
+        String actual = null;
+        try { actual = response.jsonPath().getString("details.name"); } catch (Exception ignored) {}
+
+        Assert.assertNotNull(actual, "No 'details.name' field in response. Body: " + body);
+        Assert.assertEquals(actual, expectedDetailsName, "Unexpected 'details.name'. Body: " + body);
+    }
+
+    private void assertDetailsNameContains(String expectedSubstring) {
+        Assert.assertNotNull(response, "No response captured");
+
+        String body = null;
+        try { body = response.asString(); } catch (Exception ignored) {}
+
+        String actual = null;
+        try { actual = response.jsonPath().getString("details.name"); } catch (Exception ignored) {}
+
+        Assert.assertNotNull(actual, "No 'details.name' field in response. Body: " + body);
+        Assert.assertTrue(actual.contains(expectedSubstring),
+                "Expected 'details.name' to contain [" + expectedSubstring + "] but was [" + actual + "]. Body: " + body);
     }
 
     @When("I send a PUT request to {string} with body:")
@@ -93,9 +172,30 @@ public class CategoryAPISteps {
         response = CategoryApiHelper.updateCategory(token, id, body);
     }
 
+    @Then("category with ID {int} should have name {string}")
+    public void category_with_id_should_have_name(int id, String expectedName) {
+        Assert.assertNotNull(token, "Token must be set before verifying category");
+
+        Response getResp = CategoryApiHelper.getCategoryById(token, id);
+        Assert.assertEquals(getResp.getStatusCode(), 200, "Could not fetch category " + id + " after update");
+
+        String actualName = null;
+        try { actualName = getResp.jsonPath().getString("name"); } catch (Exception ignored) {}
+        if (actualName == null) {
+            try { actualName = getResp.jsonPath().getString("data.name"); } catch (Exception ignored) {}
+        }
+
+        Assert.assertNotNull(actualName, "Could not find category name in GET response");
+        Assert.assertEquals(actualName, expectedName, "Category name was not updated");
+    }
+
     @Given("a category with ID {int} exists")
     public void a_category_with_id_exists(int id) {
-        // Seed
+        Assert.assertNotNull(token, "Token must be set before checking category existence");
+
+        Response getResp = CategoryApiHelper.getCategoryById(token, id);
+        Assert.assertEquals(getResp.getStatusCode(), 200,
+                "Precondition failed: category " + id + " does not exist (GET did not return 200)");
     }
 
     @Then("all categories in response should have parent_id {int}")
