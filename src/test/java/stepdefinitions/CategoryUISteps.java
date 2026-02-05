@@ -22,8 +22,8 @@ public class CategoryUISteps {
         // In a real test, this might seed the DB
     }
 
-    @Then("I should see pagination controls")
-    public void i_should_see_pagination_controls() {
+    @Then("I should see category pagination controls")
+    public void i_should_see_category_pagination_controls() {
         Assert.assertTrue(categoryPage.isPaginationVisible(), "Pagination controls should be visible");
     }
 
@@ -61,8 +61,8 @@ public class CategoryUISteps {
         // Mocking or assuming clean state
     }
 
-    @Then("I should see a {string} message")
-    public void i_should_see_a_message(String message) {
+    @Then("I should see a category {string} message")
+    public void i_should_see_a_category_message(String message) {
         if (message.contains("No category")) {
             Assert.assertTrue(categoryPage.isNoCategoryMessageDisplayed(), "No category message should be displayed");
         }

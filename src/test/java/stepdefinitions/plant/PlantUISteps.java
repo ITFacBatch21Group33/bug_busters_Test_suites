@@ -45,8 +45,8 @@ public class PlantUISteps {
         // Setup state - complex for UI, maybe assume specific test env
     }
 
-    @Then("I should see a {string} message")
-    public void i_should_see_a_message(String msg) {
+    @Then("I should see a plant {string} message")
+    public void i_should_see_a_plant_message(String msg) {
         if (msg.contains("No plants")) {
             Assert.assertTrue(plantPage.isNoDataMessageDisplayed());
         }
@@ -77,8 +77,8 @@ public class PlantUISteps {
         Assert.assertFalse(plantPage.isAddButtonVisible());
     }
 
-    @Then("I should see pagination controls")
-    public void i_should_see_pagination_controls() {
+    @Then("I should see plant pagination controls")
+    public void i_should_see_plant_pagination_controls() {
         Assert.assertTrue(plantPage.isPaginationNextVisible());
     }
 

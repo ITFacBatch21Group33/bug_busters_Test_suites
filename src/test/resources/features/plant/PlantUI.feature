@@ -15,7 +15,7 @@ Feature: Plant UI Management
     Given I login as a "User" for UI
     And there are no plants in the system
     When I navigate to the Plant Management page
-    Then I should see a "No plants found" message
+    Then I should see a plant "No plants found" message
 
   Scenario: Reset Button Functionality (TC-USER-UI-PLANT-009)
     Given I login as a "User" for UI

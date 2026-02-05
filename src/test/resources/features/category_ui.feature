@@ -12,7 +12,7 @@ Feature: Category Management UI
     Given I login as a "User"
     And more categories exist than fit on one page
     When I navigate to the Categories page
-    Then I should see pagination controls
+    Then I should see category pagination controls
     When I click the "Next" button
     Then I should see the next page of categories
 
@@ -21,7 +21,7 @@ Feature: Category Management UI
     Given I login as a "User"
     And no categories exist in the system
     When I navigate to the Categories page
-    Then I should see a "No category found" message
+    Then I should see a category "No category found" message
 
   @User @UI @TC-USER-UI-CAT-003
   Scenario Outline: Search for an existing category by name
