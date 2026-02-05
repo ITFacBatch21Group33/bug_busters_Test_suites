@@ -1,4 +1,4 @@
-package stepdefinitions;
+package stepdefinitions.category.api;
 
 import api.CategoryApiHelper;
 import io.cucumber.java.en.Given;

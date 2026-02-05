@@ -16,9 +16,9 @@ public class CategoryPage {
     private By nextButton = By.xpath("//a[contains(text(),'Next')]");
     private By prevButton = By.xpath("//a[contains(text(),'Previous')]");
     private By categoryRows = By.xpath("//table/tbody/tr");
-    // Broader locator for Empty State message
-    private By noDataMessage = By.xpath(
-            "//*[contains(text(),'No category') or contains(text(),'not found') or contains(text(),'No results')]");
+    // Broader locator for Empty State message using dot for nested text matching
+    private By noDataMessage = By
+            .xpath("//*[contains(.,'No category') or contains(.,'not found') or contains(.,'No results')]");
     private By parentFilterDropdown = By.name("parentId");
     private By addCategoryBtn = By.linkText("Add A Category");
 
@@ -74,7 +74,15 @@ public class CategoryPage {
     }
 
     public boolean isNoCategoryMessageDisplayed() {
-        return driver.findElements(noDataMessage).size() > 0 && driver.findElement(noDataMessage).isDisplayed();
+        try {
+            org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver,
+                    java.time.Duration.ofSeconds(10));
+            WebElement element = wait
+                    .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(noDataMessage));
+            return element.isDisplayed();
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
     }
 
     public boolean isAddCategoryButtonVisible() {
