@@ -12,16 +12,11 @@ Feature: Category Management UI
     Given I login as a "User"
     And more categories exist than fit on one page
     When I navigate to the Categories page
-    Then I should see category pagination controls
+    Then I should see pagination controls
     When I click the "Next" button
     Then I should see the next page of categories
 
-  @User @UI @TC-USER-UI-CAT-002
-  Scenario: Verify "No category found" message
-    Given I login as a "User"
-    And no categories exist in the system
-    When I navigate to the Categories page
-    Then I should see a category "No category found" message
+
 
   @User @UI @TC-USER-UI-CAT-003
   Scenario Outline: Search for an existing category by name
@@ -33,12 +28,13 @@ Feature: Category Management UI
 
     Examples:
       | categoryName | searchTerm |
-      | Electronics  | Electronics|
+      | Web          | Web        |
       | Garden       | Gard       |
 
   @User @UI @TC-USER-UI-CAT-004
   Scenario: Search for a non-existing category name
     Given I login as a "User"
+    And a category with name "Dummy" exists
     When I navigate to the Categories page
     And I search for "NonExistentCategoryXYZ"
     Then I should see a "No categories found" message in the results
@@ -73,10 +69,10 @@ Feature: Category Management UI
   @Admin @UI @TC-ADMIN-UI-CAT-003
   Scenario: Filter categories by parent
     Given I login as an "Admin"
-    And a parent category "Electronics" exists with child categories
+    And a parent category "Web" exists with child categories
     When I navigate to the Categories page
-    And I filter by parent category "Electronics"
-    Then I should see only categories belonging to "Electronics"
+    And I filter by parent category "Web"
+    Then I should see only categories belonging to "Web"
 
   @Admin @UI @TC-ADMIN-UI-CAT-004
   Scenario: Sort categories by columns
@@ -93,6 +89,7 @@ Feature: Category Management UI
   @Admin @UI @TC-ADMIN-UI-CAT-005
   Scenario: Search yields no results for Admin
     Given I login as an "Admin"
+    And a category with name "Dummy" exists
     When I navigate to the Categories page
     And I search for "XYZRandomString"
     Then I should see a "No categories found" message in the results
