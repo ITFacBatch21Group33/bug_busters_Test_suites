@@ -104,7 +104,7 @@ Feature: Category Management API
     When I send a GET request to "/api/categories"
     Then the response status code should be 401
 
-  @Admin @API @TC-ADMIN-API-CAT-006
+  @Admin @API @TC-ADMIN-API-CAT-007
   Scenario: Verify API Create Category - 201 and correct name
     Given I have a valid "Admin" token
     When I send a POST request to "/api/categories" with body:
@@ -114,20 +114,20 @@ Feature: Category Management API
     Then the response status code should be 201
     And the response should contain created category name same as request
 
-  @Admin @API @TC-ADMIN-API-CAT-007
+  @Admin @API @TC-ADMIN-API-CAT-008
   Scenario: Verify API Edit Category
     Given I have a valid "Admin" token
-    And a category with ID 1 exists
-    When I send a PUT request to "/api/categories/1" with body:
+    And a category with ID 3 exists
+    When I send a PUT request to "/api/categories/3" with body:
       """
       {
         "name": "Veggies"
       }
       """
     Then the response status code should be 200
-    And category with ID 1 should have name "Veggies"
+    And category with ID 3 should have name "Veggies"
 
-  @Admin @API @TC-ADMIN-API-CAT-008
+  @Admin @API @TC-ADMIN-API-CAT-009
   Scenario: Verify API Validation - Name Missing
     Given I have a valid "Admin" token
     When I send a POST request to "/api/categories" with body:
@@ -137,7 +137,7 @@ Feature: Category Management API
     Then the response status code should be 400
     And the response should contain validation error for missing name
 
-  @Admin @API @TC-ADMIN-API-CAT-009
+  @Admin @API @TC-ADMIN-API-CAT-010
   Scenario: Verify API Validation - Name Too Short
     Given I have a valid "Admin" token
     When I send a POST request to "/api/categories" with body:
@@ -147,7 +147,7 @@ Feature: Category Management API
     Then the response status code should be 400
     And the response should contain validation error for name too short
 
-  @Admin @API @TC-ADMIN-API-CAT-010
+  @Admin @API @TC-ADMIN-API-CAT-011
   Scenario: Verify API Validation - Name Too Long
     Given I have a valid "Admin" token
     When I send a POST request to "/api/categories" with body:
@@ -161,10 +161,10 @@ Feature: Category Management API
   Scenario: Filter categories by parent category via API (positive)
     Given I have a valid "User" token
     When I send a GET request to "/api/categories" with params:
-      | parentId | 1 |
+      | parentId | 5 |
     Then the response status code should be 200
     And the response should contain at least one category
-    And all categories in response should have parent_id 1
+    And all categories in response should have parent_id 5
 
   @User @API @TC-USER-API-CAT-007
   Scenario: Filter categories by parent category via API (no results)

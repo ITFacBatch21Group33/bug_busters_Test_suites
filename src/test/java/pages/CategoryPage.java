@@ -40,6 +40,11 @@ public class CategoryPage {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
         driver.get(baseUrl + "/ui/categories");
+        String baseUrl = utils.ConfigLoader.getProperty("base.url");
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        driver.get(baseUrl + "/ui/categories");
     }
 
     public void searchFor(String query) {

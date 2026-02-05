@@ -1,17 +1,15 @@
 package stepdefinitions.category.api;
 
+import api.CategoryApiHelper;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
+import io.restassured.response.Response;
+import org.testng.Assert;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.testng.Assert;
-
-import api.CategoryApiHelper;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import io.restassured.response.Response;
 import utils.ConfigLoader;
 
 public class CategoryAPISteps {

@@ -51,7 +51,7 @@ public class CategoryApiHelper {
     }
 
     public static Response updateCategory(String token, int id, String body) {
-         Response resp = RestAssured.given()
+        Response resp = RestAssured.given()
                 .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(body)
@@ -77,4 +77,5 @@ public class CategoryApiHelper {
         resp.then().log().ifError();
         return resp;
     }
+
 }
