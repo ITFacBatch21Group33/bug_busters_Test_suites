@@ -227,6 +227,25 @@ public class CategoryAPISteps {
         return sb.toString();
     }
 
+    @Then("the response should contain created category name same as request")
+    public void the_response_should_contain_created_category_name_same_as_request() {
+        Assert.assertNotNull(response, "No response captured");
+        Assert.assertNotNull(lastRequestedCategoryName, "No request name captured from POST body");
+
+        String body = null;
+        try { body = response.asString(); } catch (Exception ignored) {}
+
+        String actualName = null;
+        try { actualName = response.jsonPath().getString("name"); } catch (Exception ignored) {}
+        if (actualName == null) {
+            try { actualName = response.jsonPath().getString("data.name"); } catch (Exception ignored) {}
+        }
+
+        Assert.assertNotNull(actualName, "Create response has no name field. Body: " + body);
+        Assert.assertEquals(actualName, lastRequestedCategoryName,
+                "Created category name mismatch. Body: " + body);
+    }
+
     @Then("the response should contain validation error for missing name")
     public void the_response_should_contain_validation_error_for_missing_name() {
         assertMessageEquals("Validation failed");

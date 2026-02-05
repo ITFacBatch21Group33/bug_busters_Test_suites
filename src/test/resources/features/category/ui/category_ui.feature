@@ -17,7 +17,6 @@ Feature: Category Management UI
     Then I should see the next page of categories
 
 
-
   @User @UI @TC-USER-UI-CAT-003
   Scenario Outline: Search for an existing category by name
     Given I login as a "User"
