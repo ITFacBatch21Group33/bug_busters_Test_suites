@@ -23,7 +23,7 @@ Feature: Sales Management UI
   @Admin @UI @TC-ADMIN-UI-SALES-003
   Scenario: Admin accesses Sell Plant page
     Given I login as an "Admin"
-    And a plant with name "Rose" exists
+    And a plant with name "A03" exists
     When I navigate to the sales page
     And I click the Sell Plant button
     Then I should see the Create New Sell Plant page
@@ -31,10 +31,10 @@ Feature: Sales Management UI
   @Admin @UI @TC-ADMIN-UI-SALES-004
   Scenario: Admin creates sale successfully
     Given I login as an "Admin"
-    And a plant with name "Rose" exists
+    And a plant with name "A03" exists
     When I navigate to the sales page
     And I click the Sell Plant button
-    And I select plant "Rose"
+    And I select plant "A03"
     And I enter quantity "5"
     And I click the Sell button
     Then the sale should be created successfully
