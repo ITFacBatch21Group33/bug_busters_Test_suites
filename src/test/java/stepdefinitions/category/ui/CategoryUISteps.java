@@ -1,4 +1,4 @@
-package stepdefinitions;
+package stepdefinitions.category.ui;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
@@ -7,6 +7,8 @@ import org.testng.Assert;
 import pages.CategoryPage;
 import utils.BaseTest;
 import java.util.List;
+import api.CategoryApiHelper;
+import utils.AuthHelper;
 
 public class CategoryUISteps {
     private CategoryPage categoryPage = new CategoryPage(BaseTest.getDriver());
@@ -18,8 +20,12 @@ public class CategoryUISteps {
 
     @Given("more categories exist than fit on one page")
     public void more_categories_exist_than_fit_on_one_page() {
-        // Precondition setup or assumption
-        // In a real test, this might seed the DB
+        String token = AuthHelper.getAdminToken();
+        // Create 15 categories to ensure pagination (assuming default size is 10 or 5)
+        for (int i = 1; i <= 15; i++) {
+            String jsonBody = "{\"name\": \"Cat_" + i + "\", \"parentId\": null}";
+            CategoryApiHelper.createCategory(token, jsonBody);
+        }
     }
 
     @Then("I should see pagination controls")
@@ -58,7 +64,20 @@ public class CategoryUISteps {
 
     @Given("no categories exist in the system")
     public void no_categories_exist_in_the_system() {
-        // Mocking or assuming clean state
+        String token = AuthHelper.getAdminToken();
+        io.restassured.response.Response response = CategoryApiHelper.getAllCategories(token);
+        if (response.getStatusCode() == 200) {
+            List<Integer> ids = response.jsonPath().getList("id");
+            // Depending on response structure, might be "content.id" if paginated default,
+            // but getAllCategories usually returns list.
+            // CategoryApiHelper.getAllCategories points to /categories without params.
+            // If it returns list:
+            if (ids != null) {
+                for (Integer id : ids) {
+                    CategoryApiHelper.deleteCategory(token, id);
+                }
+            }
+        }
     }
 
     @Then("I should see a {string} message")
@@ -70,7 +89,9 @@ public class CategoryUISteps {
 
     @Given("a category with name {string} exists")
     public void a_category_with_name_exists(String categoryName) {
-        // Seed data
+        String token = AuthHelper.getAdminToken();
+        String jsonBody = "{\"name\": \"" + categoryName + "\", \"parentId\": null}";
+        CategoryApiHelper.createCategory(token, jsonBody);
     }
 
     @When("I search for {string}")
@@ -105,7 +126,15 @@ public class CategoryUISteps {
 
     @Given("a parent category {string} exists with child categories")
     public void a_parent_category_exists_with_child_categories(String parentName) {
-        // Seed
+        String token = AuthHelper.getAdminToken();
+        String parentBody = "{\"name\": \"" + parentName + "\", \"parentId\": null}";
+        io.restassured.response.Response response = CategoryApiHelper.createCategory(token, parentBody);
+
+        if (response.getStatusCode() == 201) {
+            int parentId = response.jsonPath().getInt("id");
+            String childBody = "{\"name\": \"SubCat\", \"parentId\": " + parentId + "}";
+            CategoryApiHelper.createCategory(token, childBody);
+        }
     }
 
     @When("I filter by parent category {string}")
@@ -120,7 +149,10 @@ public class CategoryUISteps {
 
     @Given("multiple categories exist")
     public void multiple_categories_exist() {
-        // Seed
+        String token = AuthHelper.getAdminToken();
+        CategoryApiHelper.createCategory(token, "{\"name\": \"CatA\", \"parentId\": null}");
+        CategoryApiHelper.createCategory(token, "{\"name\": \"CatB\", \"parentId\": null}");
+        CategoryApiHelper.createCategory(token, "{\"name\": \"CatC\", \"parentId\": null}");
     }
 
     @When("I sort by {string} {string}")
@@ -131,5 +163,6 @@ public class CategoryUISteps {
     @Then("the list should be sorted by {string} in {string} order")
     public void the_list_should_be_sorted_by_in_order(String column, String order) {
         // Verify sort order
+
     }
 }
