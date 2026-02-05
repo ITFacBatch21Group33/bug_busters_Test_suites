@@ -13,6 +13,7 @@ Feature: Plant API Management
     Then the plant response status code should be 200
     And the plant response should contain a list of plants
 
+
   Scenario: Validate response status code for plants (TC-USER-API-PLANT-007)
     Given I have no authentication token for plant API
     When I send a GET request to plant endpoint "/api/plants"
@@ -97,3 +98,49 @@ Feature: Plant API Management
       }
       """
     Then the plant response status code should be 404
+
+
+  
+  @User @API @TC-USER-API-PlANTS-001
+  Scenario: Create plant successfully (TC-USER-API-PLANTS-001)
+    Given I have a valid "User" token for plant API
+    And a valid category with ID 3 exists
+    When I send a POST request to plant endpoint "/api/plants/category/3" with body:
+      """
+      {
+        "name": "New Plant",
+        "price": 15.5,
+        "quantity": 10
+      }
+      """
+    Then the plant response status code should be 201
+    And the plant response body should contain the plant details
+
+  @User @API @TC-USER-API-PlANTS-003
+  Scenario: Duplicate plant name handling (TC-USER-API-PLANTS-003)
+    Given I have a valid "User" token for plant API
+    And a plant with name "Existing Plant" exists
+    When I send a POST request to plant endpoint "/api/plants/category/3" with body:
+      """
+      {
+        "name": "Existing Plant",
+        "price": 15.5,
+        "quantity": 10
+      }
+      """
+    Then the plant response status code should be 409
+    And the plant response body should contain a conflict error
+
+  @User @API @TC-USER-API-PlANTS-002
+  Scenario: Validate required fields (TC-USER-API-PLANTS-002)
+    Given I have a valid "User" token for plant API
+    And a valid category with ID 3 exists
+    When I send a POST request to plant endpoint "/api/plants/category/3" with body:
+      """
+      {
+        "price": 15.5,
+        "quantity": 10
+      }
+      """
+    Then the plant response status code should be 400
+    And the plant response body should contain a validation error
