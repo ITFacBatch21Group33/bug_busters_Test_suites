@@ -90,4 +90,53 @@ Feature: Category Management UI
     Then the list should be sorted by "Name" in "descending" order
     When I sort by "Parent Category" "ascending"
     Then the list should be sorted by "Parent Category" in "ascending" order
+  
+  @Admin @UI @TC-ADMIN-UI-CAT-006
+  Scenario: Verify successful creation of a Main Category
+    Given I login as an "Admin"
+    And category with name "Herbs" does not exist
+    And I am on the Add Category page
+    When I enter "Herbs" in the "Category Name" field
+    And I leave "Parent Category" empty
+    And I click "Save" on the Add Category page
+    Then I should be redirected to the Categories page
+    And "Herbs" should appear in the list as a Main Category
+  
+  @Admin @UI @TC-ADMIN-UI-CAT-007
+  Scenario: Verify validation for empty Category Name
+    Given I login as an "Admin"
+    And I am on the Add Category page
+    When I leave the "Category Name" field blank
+    And I click "Save" on the Add Category page
+    Then the category should not be saved
+    And an error message "Category name is required" should be displayed below the "Category Name" field
+    And an error message "Category name must be between 3 and 10 characters" should be displayed below the "Category Name" field
 
+  @Admin @UI @TC-ADMIN-UI-CAT-008
+  Scenario: Verify validation for Category Name length (Minimum Boundary)
+    Given I login as an "Admin"
+    And I am on the Add Category page
+    When I enter "AB" in the "Category Name" field
+    And I click "Save" on the Add Category page
+    Then the category should not be saved
+    And an error message "Category name must be between 3 and 10 characters" should be displayed below the "Category Name" field
+
+  @Admin @UI @TC-ADMIN-UI-CAT-009
+  Scenario: Verify validation for Category Name length (Maximum Boundary)
+    Given I login as an "Admin"
+    And I am on the Add Category page
+    When I enter "Sunflowers1" in the "Category Name" field
+    And I click "Save" on the Add Category page
+    Then the category should not be saved
+    And an error message "Category name must be between 3 and 10 characters" should be displayed below the "Category Name" field
+
+  @Admin @UI @TC-ADMIN-UI-CAT-010
+  Scenario: Verify Cancel button functionality on Add Category page
+    Given I login as an "Admin"
+    And category with name "CancelCat01" does not exist
+    And I am on the Add Category page
+    When I enter "CancelCat01" in the "Category Name" field
+    And I leave "Parent Category" empty
+    And I click "Cancel" on the Add Category page
+    Then I should be redirected to the Categories page
+    And category "CancelCat01" should not exist in the list

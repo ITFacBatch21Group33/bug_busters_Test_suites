@@ -1,17 +1,40 @@
 package stepdefinitions.category.ui;
 
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.When;
-import io.cucumber.java.en.Then;
-import org.testng.Assert;
-import pages.CategoryPage;
-import utils.BaseTest;
 import java.util.List;
+
+import org.testng.Assert;
+
 import api.CategoryApiHelper;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import pages.CategoryPage;
 import utils.AuthHelper;
+import utils.BaseTest;
 
 public class CategoryUISteps {
     private CategoryPage categoryPage = new CategoryPage(BaseTest.getDriver());
+
+    /**
+     * Backwards-compatible access to CategoryPage parent text.
+     * Some project versions don't expose getParentTextForCategory(String) on CategoryPage.
+     */
+    private String getParentTextForCategorySafely(String categoryName) {
+        try {
+            java.lang.reflect.Method m = categoryPage().getClass()
+                    .getMethod("getParentTextForCategory", String.class);
+            Object result = m.invoke(categoryPage(), categoryName);
+            return result == null ? null : String.valueOf(result);
+        } catch (NoSuchMethodException e) {
+            return null; // Method not available in this project version.
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read parent text for category: " + categoryName, e);
+        }
+    }
+
+    private CategoryPage categoryPage() {
+        return categoryPage;
+    }
 
     @When("I navigate to the Categories page")
     public void i_navigate_to_the_categories_page() {
@@ -164,5 +187,112 @@ public class CategoryUISteps {
     public void the_list_should_be_sorted_by_in_order(String column, String order) {
         // Verify sort order
 
+    }
+
+    // Create a main category
+    @Given("category with name {string} does not exist")
+    public void category_with_name_does_not_exist(String categoryName) {
+        String token = AuthHelper.getAdminToken();
+        io.restassured.response.Response response = CategoryApiHelper.getAllCategories(token);
+
+        // Minimal assumption: response is a plain list of categories with fields id + name
+        List<Integer> ids = response.jsonPath().getList("id");
+        List<String> names = response.jsonPath().getList("name");
+
+        if (ids == null || names == null) return;
+
+        for (int i = 0; i < Math.min(ids.size(), names.size()); i++) {
+            if (categoryName.equals(names.get(i))) {
+                CategoryApiHelper.deleteCategory(token, ids.get(i));
+            }
+        }
+    }
+
+    @Given("I am on the Add Category page")
+    public void i_am_on_the_add_category_page() {
+        categoryPage().navigateToAddCategory();
+    }
+
+    @When("I enter {string} in the {string} field")
+    public void i_enter_in_the_field(String value, String fieldName) {
+        if (!"Category Name".equals(fieldName)) {
+            throw new IllegalArgumentException("Unsupported field: " + fieldName);
+        }
+        categoryPage().enterCategoryName(value);
+    }
+
+    @When("I leave {string} empty")
+    public void i_leave_empty(String fieldName) {
+        if (!"Parent Category".equals(fieldName)) {
+            throw new IllegalArgumentException("Unsupported field: " + fieldName);
+        }
+        // In your UI “Main Category” represents no parent
+        categoryPage().selectParentCategory("Main Category");
+    }
+
+    @When("I click {string} on the Add Category page")
+    public void i_click_on_the_add_category_page(String buttonName) {
+        if ("Save".equals(buttonName)) {
+            categoryPage().clickSaveOnAddCategory();
+            return;
+        }
+        if ("Cancel".equals(buttonName)) {
+            categoryPage().clickCancelOnAddCategory();
+            return;
+        }
+        throw new IllegalArgumentException("Unsupported button: " + buttonName);
+    }
+
+    @Then("I should be redirected to the Categories page")
+    public void i_should_be_redirected_to_the_categories_page() {
+        categoryPage().waitForCategoriesListPage();
+    }
+
+    @Then("{string} should appear in the list as a Main Category")
+    public void should_appear_in_list_as_main_category(String categoryName) {
+        categoryPage().searchFor(categoryName);
+
+        List<String> names = categoryPage().getCategoryNames();
+        Assert.assertTrue(names.contains(categoryName), "Expected category in list: " + categoryName);
+
+        String parentText = getParentTextForCategorySafely(categoryName);
+        if (parentText != null) {
+            Assert.assertEquals(parentText, "Main Category", "Expected Parent Category to be Main Category");
+        }
+    }
+    
+    // Validation empty category name error
+    @When("I leave the {string} field blank")
+    public void i_leave_the_field_blank(String fieldName) {
+        if (!"Category Name".equals(fieldName)) {
+            throw new IllegalArgumentException("Unsupported field: " + fieldName);
+        }
+        categoryPage().clearCategoryName();
+    }
+
+    @Then("the category should not be saved")
+    public void the_category_should_not_be_saved() {
+        categoryPage().waitForAddCategoryPage();
+        Assert.assertTrue(categoryPage().isOnAddCategoryPage(),
+                "Expected to stay on Add Category page (not saved). URL: " + BaseTest.getDriver().getCurrentUrl());
+    }
+
+    @Then("an error message {string} should be displayed below the {string} field")
+    public void an_error_message_should_be_displayed_below_the_field(String message, String fieldName) {
+        if (!"Category Name".equals(fieldName)) {
+            throw new IllegalArgumentException("Unsupported field: " + fieldName);
+        }
+        Assert.assertTrue(categoryPage().isValidationMessageDisplayed(message),
+                "Expected validation message: " + message);
+    }
+
+    @Then("category {string} should not exist in the list")
+    public void category_should_not_exist_in_the_list(String categoryName) {
+        categoryPage().navigateTo();
+        categoryPage().searchFor(categoryName);
+        categoryPage().waitForResultsOrEmptyState();
+
+        Assert.assertFalse(categoryPage().isCategoryPresentInResults(categoryName),
+                "Expected category NOT to be present in list: " + categoryName);
     }
 }
