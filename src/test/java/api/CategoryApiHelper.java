@@ -26,8 +26,10 @@ public class CategoryApiHelper {
     }
 
     public static Response getCategoriesNoAuth() {
-        return RestAssured.given()
+        Response resp = RestAssured.given()
                 .get(BASE_URI + "/categories");
+        resp.then().log().ifError();
+        return resp;
     }
 
     public static Response createCategory(String token, String body) {
@@ -54,6 +56,14 @@ public class CategoryApiHelper {
                 .contentType("application/json")
                 .body(body)
                 .put(BASE_URI + "/categories/" + id);
+        resp.then().log().ifError();
+        return resp;
+    }
+
+    public static Response deleteCategory(String token, int id) {
+        Response resp = RestAssured.given()
+                .header("Authorization", "Bearer " + token)
+                .delete(BASE_URI + "/categories/" + id);
         resp.then().log().ifError();
         return resp;
     }
