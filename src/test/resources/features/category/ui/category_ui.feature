@@ -16,12 +16,7 @@ Feature: Category Management UI
     When I click the "Next" button
     Then I should see the next page of categories
 
-  @User @UI @TC-USER-UI-CAT-002
-  Scenario: Verify "No category found" message
-    Given I login as a "User"
-    And no categories exist in the system
-    When I navigate to the Categories page
-    Then I should see a "No category found" message
+
 
   @User @UI @TC-USER-UI-CAT-003
   Scenario Outline: Search for an existing category by name
@@ -91,3 +86,10 @@ Feature: Category Management UI
     When I sort by "Parent Category" "ascending"
     Then the list should be sorted by "Parent Category" in "ascending" order
 
+  @Admin @UI @TC-ADMIN-UI-CAT-005
+  Scenario: Search yields no results for Admin
+    Given I login as an "Admin"
+    And a category with name "Dummy" exists
+    When I navigate to the Categories page
+    And I search for "XYZRandomString"
+    Then I should see a "No categories found" message in the results
