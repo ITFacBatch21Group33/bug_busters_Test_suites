@@ -15,6 +15,8 @@ import utils.BaseTest;
 public class CategoryUISteps {
     private CategoryPage categoryPage = new CategoryPage(BaseTest.getDriver());
 
+
+
     /**
      * Backwards-compatible access to CategoryPage parent text.
      * Some project versions don't expose getParentTextForCategory(String) on CategoryPage.
@@ -294,5 +296,190 @@ public class CategoryUISteps {
 
         Assert.assertFalse(categoryPage().isCategoryPresentInResults(categoryName),
                 "Expected category NOT to be present in list: " + categoryName);
+    }
+
+    private String resolvedNoChildParentName;
+
+    private static String randomLetters(int len) {
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder sb = new StringBuilder(len);
+        java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
+        for (int i = 0; i < len; i++) sb.append(alphabet.charAt(rnd.nextInt(alphabet.length())));
+        return sb.toString();
+    }
+
+    @When("I apply the parent category filter {string}")
+    public void i_apply_the_parent_category_filter(String parentName) {
+        String nameToUse = (resolvedNoChildParentName != null) ? resolvedNoChildParentName : parentName;
+
+        if (nameToUse != null && nameToUse.contains("{rand}")) {
+            resolvedNoChildParentName = nameToUse.replace("{rand}", randomLetters(3));
+            nameToUse = resolvedNoChildParentName;
+        }
+
+        categoryPage.filterByParentAndWait(nameToUse);
+    }
+
+    @Given("a parent category {string} exists or is created with child categories")
+    public void a_parent_category_exists_or_is_created_with_child_categories(String parentName) {
+        ensureParentCategoryHasChildren(parentName, 2);
+    }
+
+    private void ensureParentCategoryHasChildren(String parentName, int childCount) {
+        String token = AuthHelper.getAdminToken();
+
+        Integer parentId = null;
+
+        String parentBody = "{\"name\": \"" + parentName + "\", \"parentId\": null}";
+        io.restassured.response.Response createResp = CategoryApiHelper.createCategory(token, parentBody);
+        if (createResp.getStatusCode() == 201) {
+            parentId = createResp.jsonPath().getObject("id", Integer.class);
+        }
+
+        // If already exists (or create failed), fetch by name
+        if (parentId == null) {
+            java.util.Map<String, Object> params = new java.util.HashMap<>();
+            params.put("name", parentName);
+
+            io.restassured.response.Response getResp = CategoryApiHelper.getCategoriesWithParams(token, params);
+
+            parentId = getResp.jsonPath().getObject("[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("content[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("data[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("data.content[0].id", Integer.class);
+        }
+
+        Assert.assertNotNull(parentId, "Could not resolve parentId for parent category: " + parentName);
+
+        String suffix = String.valueOf(System.currentTimeMillis() % 100000);
+        for (int i = 1; i <= childCount; i++) {
+            String childBody = "{\"name\": \"" + parentName + "_Child" + i + "_" + suffix + "\", \"parentId\": " + parentId + "}";
+            CategoryApiHelper.createCategory(token, childBody);
+        }
+    }
+
+    @Given("a parent category {string} exists with no child categories")
+    public void a_parent_category_exists_with_no_child_categories(String parentName) {
+        String token = AuthHelper.getAdminToken();
+
+        String nameToUse = parentName;
+        if (nameToUse != null && nameToUse.contains("{rand}")) {
+            resolvedNoChildParentName = nameToUse.replace("{rand}", randomLetters(3));
+            nameToUse = resolvedNoChildParentName;
+        }
+
+        Integer parentId = null;
+
+        // Create parent if possible
+        String parentBody = "{\"name\": \"" + nameToUse + "\", \"parentId\": null}";
+        io.restassured.response.Response createResp = CategoryApiHelper.createCategory(token, parentBody);
+        if (createResp.getStatusCode() == 201) {
+            parentId = createResp.jsonPath().getObject("id", Integer.class);
+        }
+
+        // If already exists, fetch its id by name
+        if (parentId == null) {
+            java.util.Map<String, Object> params = new java.util.HashMap<>();
+            params.put("name", nameToUse);
+
+            io.restassured.response.Response getResp = CategoryApiHelper.getCategoriesWithParams(token, params);
+
+            parentId = getResp.jsonPath().getObject("[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("content[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("data[0].id", Integer.class);
+            if (parentId == null) parentId = getResp.jsonPath().getObject("data.content[0].id", Integer.class);
+        }
+
+        Assert.assertNotNull(parentId, "Could not resolve parentId for parent category: " + nameToUse);
+
+        // Delete any children under that parent (so we guarantee "no children")
+        java.util.Map<String, Object> childParams = new java.util.HashMap<>();
+        childParams.put("parentId", parentId);
+
+        io.restassured.response.Response childrenResp = CategoryApiHelper.getCategoriesWithParams(token, childParams);
+
+        java.util.List<Integer> childIds = childrenResp.jsonPath().getList("id");
+        if (childIds == null) childIds = childrenResp.jsonPath().getList("content.id");
+        if (childIds == null) childIds = childrenResp.jsonPath().getList("data.id");
+        if (childIds == null) childIds = childrenResp.jsonPath().getList("data.content.id");
+
+        if (childIds != null) {
+            for (Integer id : childIds) {
+                if (id != null) CategoryApiHelper.deleteCategory(token, id);
+            }
+        }
+
+        // Optional sanity check
+        io.restassured.response.Response checkResp = CategoryApiHelper.getCategoriesWithParams(token, childParams);
+        java.util.List<?> remaining = checkResp.jsonPath().getList("$");
+        if (remaining == null) remaining = checkResp.jsonPath().getList("content");
+        if (remaining == null) remaining = checkResp.jsonPath().getList("data");
+        if (remaining == null) remaining = checkResp.jsonPath().getList("data.content");
+
+        Assert.assertTrue(remaining == null || remaining.isEmpty(),
+                "Precondition failed: expected no children for parent [" + nameToUse + "] but found some.");
+    }
+
+    @Then("the results list should be empty")
+    public void the_results_list_should_be_empty_ui() {
+        categoryPage.waitForResultsOrEmptyState();
+        Assert.assertEquals(categoryPage.getCategoryDataRowCount(), 0, "Expected 0 category data rows.");
+    }
+
+    @Then("I should see a no results message in the results")
+    public void i_should_see_a_no_results_message_in_the_results() {
+        Assert.assertTrue(categoryPage.isNoResultsMessageDisplayedFlexible(),
+                "Expected a no-results/empty-state message to be displayed.");
+    }
+
+    @Given("multiple categories exist for User sorting")
+    public void multiple_categories_exist_for_user_sorting() {
+        String token = AuthHelper.getAdminToken();
+        String suffix = randomLetters(3);
+
+        // 3–10 chars, intentionally not alphabetical by creation
+        CategoryApiHelper.createCategory(token, "{\"name\": \"Za" + suffix + "\", \"parentId\": null}");
+        CategoryApiHelper.createCategory(token, "{\"name\": \"Aa" + suffix + "\", \"parentId\": null}");
+        CategoryApiHelper.createCategory(token, "{\"name\": \"Ma" + suffix + "\", \"parentId\": null}");
+    }
+
+    @When("I sort by {string} {string} as a User")
+    public void i_sort_by_as_a_user(String column, String order) {
+        categoryPage.sortBy(column, order);
+    }
+
+    @Then("as a User the list should be sorted by {string} in {string} order")
+    public void as_a_user_the_list_should_be_sorted_by_in_order(String column, String order) {
+        boolean ascending = "ascending".equalsIgnoreCase(order);
+        boolean descending = "descending".equalsIgnoreCase(order);
+        Assert.assertTrue(ascending || descending, "Unsupported sort order: " + order);
+
+        if ("ID".equalsIgnoreCase(column)) {
+            List<Integer> ids = categoryPage.getIdColumnValues();
+            for (int i = 1; i < ids.size(); i++) {
+                int prev = ids.get(i - 1);
+                int curr = ids.get(i);
+                if (ascending) Assert.assertTrue(curr >= prev, "IDs not ascending: " + ids);
+                else Assert.assertTrue(curr <= prev, "IDs not descending: " + ids);
+            }
+            return;
+        }
+
+        if ("Name".equalsIgnoreCase(column)) {
+            List<String> names = categoryPage.getCategoryNames().stream()
+                    .map(s -> s == null ? "" : s.trim())
+                    .collect(java.util.stream.Collectors.toList());
+
+            for (int i = 1; i < names.size(); i++) {
+                String prev = names.get(i - 1);
+                String curr = names.get(i);
+                int cmp = curr.compareToIgnoreCase(prev);
+                if (ascending) Assert.assertTrue(cmp >= 0, "Names not ascending: " + names);
+                else Assert.assertTrue(cmp <= 0, "Names not descending: " + names);
+            }
+            return;
+        }
+
+        throw new IllegalArgumentException("User sort check not implemented for column: " + column);
     }
 }

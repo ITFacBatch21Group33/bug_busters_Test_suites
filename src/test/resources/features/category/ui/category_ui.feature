@@ -134,3 +134,36 @@ Feature: Category Management UI
     And I click "Cancel" on the Add Category page
     Then I should be redirected to the Categories page
     And category "CancelCat01" should not exist in the list
+
+  @User @UI @TC-USER-UI-CAT-006
+  Scenario: Filter categories by an existing parent category as User
+    Given I login as a "User"
+    And a parent category "Web" exists or is created with child categories
+    When I navigate to the Categories page
+    And I filter by parent category "Web"
+    Then I should see only categories belonging to "Web"
+
+  @User @UI @TC-USER-UI-CAT-007
+  Scenario: Filter categories by a parent category with no children as User
+    Given I login as a "User"
+    And a parent category "CatNoCh{rand}" exists with no child categories
+    When I navigate to the Categories page
+    And I apply the parent category filter "CatNoCh{rand}"
+    Then I should see a no results message in the results
+    And the results list should be empty
+
+  @User @UI @TC-USER-UI-CAT-008
+  Scenario: Sort category list by ID as User
+    Given I login as a "User"
+    And multiple categories exist for User sorting
+    When I navigate to the Categories page
+    And I sort by "ID" "ascending" as a User
+    Then as a User the list should be sorted by "ID" in "ascending" order
+
+  @User @UI @TC-USER-UI-CAT-009
+  Scenario: Sort category list by Name as User
+    Given I login as a "User"
+    And multiple categories exist for User sorting
+    When I navigate to the Categories page
+    And I sort by "Name" "ascending" as a User
+    Then as a User the list should be sorted by "Name" in "ascending" order
