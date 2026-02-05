@@ -26,7 +26,7 @@ Feature: Category Management API
   Scenario: Search categories by name via API
     Given I have a valid "User" token
     When I send a GET request to "/api/categories" with params:
-      | search | flower |
+      | name | flower |
     Then the response status code should be 200
     And the response list should contain categories matching "flower"
 
@@ -34,9 +34,10 @@ Feature: Category Management API
   Scenario: Search categories by name via API (no results)
     Given I have a valid "User" token
     When I send a GET request to "/api/categories" with params:
-      | search | nonexistent |
+      | name | nonexistent |
     Then the response status code should be 200
     And the response list should be empty
+
 
   @User @API @TC-USER-API-CAT-005
   Scenario: Attempt to create a category as User (unauthorized)
@@ -44,8 +45,8 @@ Feature: Category Management API
     When I send a POST request to "/api/categories" with body:
       """
       {
-        "name": "New Category",
-        "parent_id": null
+        "name": "NewCat",
+        "parentId": null
       }
       """
     Then the response status code should be 403
@@ -57,7 +58,7 @@ Feature: Category Management API
     When I send a PUT request to "/api/categories/1" with body:
          """
       {
-        "name": "Updated Category"
+        "name": "UpdCat"
       }
       """
     Then the response status code should be 403
@@ -74,7 +75,7 @@ Feature: Category Management API
   Scenario: Same as User search but for Admin
     Given I have a valid "Admin" token
     When I send a GET request to "/api/categories" with params:
-      | search | CategoryName |
+      | name | CategoryName |
     Then the response status code should be 200
     And the response list should contain categories matching "CategoryName"
 
@@ -82,7 +83,7 @@ Feature: Category Management API
   Scenario: Filter categories by parent via API
     Given I have a valid "Admin" token
     When I send a GET request to "/api/categories" with params:
-      | parent_id | 10 |
+      | parentId | 10 |
     Then the response status code should be 200
     And all categories in response should have parent_id 10
 
@@ -90,11 +91,11 @@ Feature: Category Management API
   Scenario: Sort categories via API
     Given I have a valid "Admin" token
     When I send a GET request to "/api/categories" with params:
-      | sort | id |
+      | sortField | id |
     Then the response status code should be 200
     And the response list should be sorted by "id" ascending
     When I send a GET request to "/api/categories" with params:
-      | sort | name |
+      | sortField | name |
     Then the response list should be sorted by "name" ascending
 
   @Admin @API @TC-ADMIN-API-CAT-005

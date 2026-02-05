@@ -6,12 +6,14 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 public class CategoryApiHelper {
-    private static final String BASE_URI = "http://localhost:8080/api";
+    private static final String BASE_URI = utils.ConfigLoader.getProperty("api.base.url");
 
     public static Response getAllCategories(String token) {
-        return RestAssured.given()
+        Response resp = RestAssured.given()
                 .header("Authorization", "Bearer " + token)
                 .get(BASE_URI + "/categories");
+        resp.then().log().ifError();
+        return resp;
     }
 
     public static Response getCategoriesWithParams(String token, Map<String, Object> params) {

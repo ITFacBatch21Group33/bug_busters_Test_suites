@@ -11,51 +11,78 @@ public class CategoryPage {
     private WebDriver driver;
 
     // Locators
-    private By searchBox = By.id("category-search");
-    private By searchButton = By.id("search-btn");
-    private By nextButton = By.id("pagination-next");
-    private By prevButton = By.id("pagination-prev");
-    private By categoryTable = By.id("category-table");
-    private By categoryRows = By.xpath("//table[@id='category-table']/tbody/tr");
-    private By noDataMessage = By.id("no-data-msg");
-    private By parentFilterDropdown = By.id("parent-filter");
-    private By addCategoryBtn = By.id("add-category-btn");
+    private By searchBox = By.name("name");
+    private By searchButton = By.cssSelector("button[type='submit']");
+    private By nextButton = By.xpath("//a[contains(text(),'Next')]");
+    private By prevButton = By.xpath("//a[contains(text(),'Previous')]");
+    private By categoryRows = By.xpath("//table/tbody/tr");
+    // Broader locator for Empty State message using dot for nested text matching
+    private By noDataMessage = By
+            .xpath("//*[contains(.,'No category') or contains(.,'not found') or contains(.,'No results')]");
+    private By parentFilterDropdown = By.name("parentId");
+    private By addCategoryBtn = By.linkText("Add A Category");
 
     public CategoryPage(WebDriver driver) {
         this.driver = driver;
     }
 
     public void navigateTo() {
-        // Assuming the URL, actual implementation depends on routing
-        driver.get("http://localhost:8080/ui/categories");
+        String baseUrl = utils.ConfigLoader.getProperty("base.url");
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        driver.get(baseUrl + "/ui/categories");
     }
 
     public void searchFor(String query) {
-        driver.findElement(searchBox).clear();
-        driver.findElement(searchBox).sendKeys(query);
+        // Increased timeout to 20s to handle potential slow loads
+        org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver,
+                java.time.Duration.ofSeconds(20));
+        WebElement box = wait
+                .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(searchBox));
+        box.clear();
+        box.sendKeys(query);
         driver.findElement(searchButton).click();
     }
 
     public boolean isPaginationVisible() {
-        return driver.findElement(nextButton).isDisplayed();
+        try {
+            return driver.findElement(nextButton).isDisplayed();
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            return false;
+        }
     }
 
     public void clickNextPage() {
-        driver.findElement(nextButton).click();
+        WebElement element = driver.findElement(nextButton);
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
     }
 
     public void clickPrevPage() {
-        driver.findElement(prevButton).click();
+        WebElement element = driver.findElement(prevButton);
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
     }
 
     public List<String> getCategoryNames() {
-        return driver.findElements(categoryRows).stream()
-                .map(row -> row.findElement(By.xpath("td[2]")).getText()) // Assuming Name is in 2nd column
+        org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver,
+                java.time.Duration.ofSeconds(20));
+        wait.until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(categoryRows));
+
+        return driver.findElements(By.xpath("//table/tbody/tr/td[2]")).stream()
+                .map(WebElement::getText)
                 .collect(Collectors.toList());
     }
 
     public boolean isNoCategoryMessageDisplayed() {
-        return driver.findElements(noDataMessage).size() > 0 && driver.findElement(noDataMessage).isDisplayed();
+        try {
+            org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver,
+                    java.time.Duration.ofSeconds(10));
+            WebElement element = wait
+                    .until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated(noDataMessage));
+            return element.isDisplayed();
+        } catch (org.openqa.selenium.TimeoutException e) {
+            return false;
+        }
     }
 
     public boolean isAddCategoryButtonVisible() {
