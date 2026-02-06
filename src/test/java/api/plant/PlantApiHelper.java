@@ -5,14 +5,12 @@ import io.restassured.response.Response;
 import java.util.Map;
 
 public class PlantApiHelper {
-    private static final String BASE_URI = "http://localhost:8080/api";
-    private static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjpbIlJPTEVfQURNSU4iXSwiaWF0IjoxNzcwMjg1MDU3LCJleHAiOjE3NzAyODg2NTd9.YBfwPzCIqKGT1MxuSPbkoaCmqvu8cPL6d9v_uW_fcww";
-
+    private static final String BASE_URI = utils.ConfigLoader.getProperty("api.base.url");
     public static Response getAllPlants(String token) {
         if (token != null && !token.isEmpty()) {
             return RestAssured.given()
                     .log().all()
-                    .header("Authorization", "Bearer " + TOKEN)
+                    .header("Authorization", "Bearer " + token)
                     .get(BASE_URI + "/plants");
         } else {
              return RestAssured.given()
@@ -25,7 +23,7 @@ public class PlantApiHelper {
         if (token != null && !token.isEmpty()) {
             return RestAssured.given()
                     .log().all()
-                    .header("Authorization", "Bearer " + TOKEN)
+                    .header("Authorization", "Bearer " + token)
                     .get(BASE_URI + "/plants/" + id);
         } else {
              return RestAssured.given()
@@ -37,7 +35,7 @@ public class PlantApiHelper {
     public static Response updatePlant(String token, int id, String body) {
         Response resp = RestAssured.given()
                 .log().all()
-                .header("Authorization", "Bearer " + TOKEN)
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(body)
                 .put(BASE_URI + "/plants/" + id);
@@ -45,10 +43,11 @@ public class PlantApiHelper {
         resp.then().log().ifError();
         return resp;
     }
+
     public static Response createPlant(String token, int categoryId, String body) {
         return RestAssured.given()
                 .log().all()
-                .header("Authorization", "Bearer " + TOKEN)
+                .header("Authorization", "Bearer " + token)
                 .contentType("application/json")
                 .body(body)
                 .post(BASE_URI + "/plants/category/" + categoryId);
@@ -58,7 +57,7 @@ public class PlantApiHelper {
         if (token != null && !token.isEmpty()) {
             return RestAssured.given()
                     .log().all()
-                    .header("Authorization", "Bearer " + TOKEN)
+                    .header("Authorization", "Bearer " + token)
                     .queryParams(queryParams)
                     .get(BASE_URI + "/plants/paged");
         } else {
@@ -67,5 +66,15 @@ public class PlantApiHelper {
                     .queryParams(queryParams)
                     .get(BASE_URI + "/plants/paged");
         }
+    }
+
+    public static Response deletePlant(String token, int id) {
+        Response resp = RestAssured.given()
+                .log().all()
+                .header("Authorization", "Bearer " + token)
+                .delete(BASE_URI + "/plants/" + id);
+        
+        resp.then().log().ifError();
+        return resp;
     }
 }

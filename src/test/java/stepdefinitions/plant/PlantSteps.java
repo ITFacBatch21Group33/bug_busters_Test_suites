@@ -21,9 +21,9 @@ public class PlantSteps {
     @Given("I have a valid {string} token for plant API")
     public void i_have_a_valid_token_for_plant_api(String role) {
         if ("User".equalsIgnoreCase(role)) {
-            token = ConfigLoader.getProperty("user.token");
+            token = utils.AuthHelper.getUserToken();
         } else if ("Admin".equalsIgnoreCase(role)) {
-            token = ConfigLoader.getProperty("admin.token");
+            token = utils.AuthHelper.getAdminToken();
         }
     }
 
@@ -136,8 +136,8 @@ public class PlantSteps {
         Assert.assertTrue(list.size() <= count);
     }
 
-    @Then("the plants should be sorted by {string} in {string} order")
-    public void the_plants_should_be_sorted_by_in_order(String field, String order) {
+    @Then("the plants returned by API should be sorted by {string} in {string} order")
+    public void the_plants_returned_by_api_should_be_sorted_by_in_order(String field, String order) {
         List<java.util.Map<String, Object>> plants = response.jsonPath().getList("content");
         if (plants == null) plants = response.jsonPath().getList("$");
         
@@ -156,5 +156,10 @@ public class PlantSteps {
                 }
             }
         }
+    }
+
+    @Then("the plants should be sorted by {string} in {string} order")
+    public void the_plants_should_be_sorted_by_in_order(String field, String order) {
+        the_plants_returned_by_api_should_be_sorted_by_in_order(field, order);
     }
 }
