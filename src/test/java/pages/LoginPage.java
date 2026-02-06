@@ -38,6 +38,10 @@ public class LoginPage {
             driver.findElement(passwordField).clear();
             driver.findElement(passwordField).sendKeys(password);
             driver.findElement(loginButton).click();
+            
+            // Wait for login to complete (URL change or specific element)
+            org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10));
+            wait.until(d -> !d.getCurrentUrl().contains("/login"));
         } catch (Exception e) {
             System.out.println("DEBUG: Login failed at URL: " + driver.getCurrentUrl());
             System.out.println("DEBUG: Page Title: " + driver.getTitle());
