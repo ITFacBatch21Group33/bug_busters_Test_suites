@@ -54,7 +54,7 @@ public class CategoryAPISteps {
     public void i_send_a_get_request_to_with_params(String endpoint, Map<String, String> params) {
         Map<String, Object> queryParams = new HashMap<>(params);
         if (endpoint != null && endpoint.contains("/categories/page")) {
-        response = CategoryApiHelper.getCategoriesPageWithParams(token, queryParams);
+            response = CategoryApiHelper.getCategoriesPageWithParams(token, queryParams);
         } else {
             response = CategoryApiHelper.getCategoriesWithParams(token, queryParams);
         }
@@ -86,13 +86,14 @@ public class CategoryAPISteps {
         Assert.assertTrue(list == null || list.isEmpty());
     }
 
-    //Filter Categories by parent_id
+    // Filter Categories by parent_id
 
     @Then("the response should contain at least one category")
     public void the_response_should_contain_at_least_one_category() {
         List<Map<String, Object>> categories = extractCategories(response);
         Assert.assertNotNull(categories, "No categories list found in response");
-        Assert.assertFalse(categories.isEmpty(), "Expected at least 1 category but got empty list. Body: " + response.asString());
+        Assert.assertFalse(categories.isEmpty(),
+                "Expected at least 1 category but got empty list. Body: " + response.asString());
     }
 
     @Then("all categories in response should have parent_id {int}")
@@ -109,8 +110,10 @@ public class CategoryAPISteps {
         for (Map<String, Object> category : categories) {
             String actualParentName = null;
             Object v = category.get("parentName");
-            if (v == null) v = category.get("parent");
-            if (v != null) actualParentName = String.valueOf(v);
+            if (v == null)
+                v = category.get("parent");
+            if (v != null)
+                actualParentName = String.valueOf(v);
 
             Assert.assertNotNull(actualParentName, "Category missing parent name field: " + category);
             Assert.assertEquals(actualParentName, expectedParentName, "Category belongs to wrong parent: " + category);
@@ -120,18 +123,23 @@ public class CategoryAPISteps {
     private List<Map<String, Object>> extractCategories(Response resp) {
         Assert.assertNotNull(resp, "No response captured");
 
-        // Common response shapes: [] OR {content: []} OR {data: []} OR {data: {content: []}}
+        // Common response shapes: [] OR {content: []} OR {data: []} OR {data: {content:
+        // []}}
         List<Map<String, Object>> list = safeGetList(resp, "$");
-        if (list != null) return list;
+        if (list != null)
+            return list;
 
         list = safeGetList(resp, "content");
-        if (list != null) return list;
+        if (list != null)
+            return list;
 
         list = safeGetList(resp, "data");
-        if (list != null) return list;
+        if (list != null)
+            return list;
 
         list = safeGetList(resp, "data.content");
-        if (list != null) return list;
+        if (list != null)
+            return list;
 
         return null;
     }
@@ -140,12 +148,14 @@ public class CategoryAPISteps {
     private List<Map<String, Object>> safeGetList(Response resp, String path) {
         try {
             List<?> raw = resp.jsonPath().getList(path);
-            if (raw == null) return null;
+            if (raw == null)
+                return null;
 
             // Ensure it’s actually a list of objects/maps
             List<Map<String, Object>> mapped = new ArrayList<>();
             for (Object o : raw) {
-                if (!(o instanceof Map)) return null;
+                if (!(o instanceof Map))
+                    return null;
                 mapped.add((Map<String, Object>) o);
             }
             return mapped;
@@ -159,7 +169,10 @@ public class CategoryAPISteps {
         Assert.assertNotNull(response, "No response captured");
 
         List<?> root = null;
-        try { root = response.jsonPath().getList("$"); } catch (Exception ignored) {}
+        try {
+            root = response.jsonPath().getList("$");
+        } catch (Exception ignored) {
+        }
 
         if (root != null) {
             Assert.assertTrue(root.isEmpty(), "Expected empty list but got: " + response.asString());
@@ -176,7 +189,8 @@ public class CategoryAPISteps {
     public void the_response_list_should_be_sorted_by_ascending(String field) {
         List<Map<String, Object>> categories = extractCategories(response);
         Assert.assertNotNull(categories, "No categories list found. Body: " + response.asString());
-        Assert.assertFalse(categories.isEmpty(), "Expected non-empty list to verify sorting. Body: " + response.asString());
+        Assert.assertFalse(categories.isEmpty(),
+                "Expected non-empty list to verify sorting. Body: " + response.asString());
 
         for (int i = 1; i < categories.size(); i++) {
             Object prev = categories.get(i - 1).get(field);
@@ -189,9 +203,12 @@ public class CategoryAPISteps {
     }
 
     private int compareValues(Object a, Object b) {
-        if (a == null && b == null) return 0;
-        if (a == null) return -1;
-        if (b == null) return 1;
+        if (a == null && b == null)
+            return 0;
+        if (a == null)
+            return -1;
+        if (b == null)
+            return 1;
 
         // Numeric compare when possible (covers id sorting)
         try {
@@ -203,7 +220,6 @@ public class CategoryAPISteps {
         }
     }
 
-
     @When("I send a POST request to {string} with body:")
     public void i_send_a_post_request_to_with_body(String endpoint, String body) {
         // Added random suffix to avoid duplicates
@@ -214,8 +230,8 @@ public class CategoryAPISteps {
     }
 
     private String extractName(String jsonText) {
-        java.util.regex.Matcher matcher =
-                java.util.regex.Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"").matcher(jsonText);
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"")
+                .matcher(jsonText);
         return matcher.find() ? matcher.group(1) : null;
     }
 
@@ -223,7 +239,8 @@ public class CategoryAPISteps {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
         java.util.Random r = new java.util.Random();
         StringBuilder sb = new StringBuilder(len);
-        for (int i = 0; i < len; i++) sb.append(alphabet.charAt(r.nextInt(alphabet.length())));
+        for (int i = 0; i < len; i++)
+            sb.append(alphabet.charAt(r.nextInt(alphabet.length())));
         return sb.toString();
     }
 
@@ -233,12 +250,21 @@ public class CategoryAPISteps {
         Assert.assertNotNull(lastRequestedCategoryName, "No request name captured from POST body");
 
         String body = null;
-        try { body = response.asString(); } catch (Exception ignored) {}
+        try {
+            body = response.asString();
+        } catch (Exception ignored) {
+        }
 
         String actualName = null;
-        try { actualName = response.jsonPath().getString("name"); } catch (Exception ignored) {}
+        try {
+            actualName = response.jsonPath().getString("name");
+        } catch (Exception ignored) {
+        }
         if (actualName == null) {
-            try { actualName = response.jsonPath().getString("data.name"); } catch (Exception ignored) {}
+            try {
+                actualName = response.jsonPath().getString("data.name");
+            } catch (Exception ignored) {
+            }
         }
 
         Assert.assertNotNull(actualName, "Create response has no name field. Body: " + body);
@@ -268,10 +294,16 @@ public class CategoryAPISteps {
         Assert.assertNotNull(response, "No response captured");
 
         String body = null;
-        try { body = response.asString(); } catch (Exception ignored) {}
+        try {
+            body = response.asString();
+        } catch (Exception ignored) {
+        }
 
         String actual = null;
-        try { actual = response.jsonPath().getString("message"); } catch (Exception ignored) {}
+        try {
+            actual = response.jsonPath().getString("message");
+        } catch (Exception ignored) {
+        }
 
         Assert.assertNotNull(actual, "No 'message' field in response. Body: " + body);
         Assert.assertEquals(actual, expectedMessage, "Unexpected 'message'. Body: " + body);
@@ -281,10 +313,16 @@ public class CategoryAPISteps {
         Assert.assertNotNull(response, "No response captured");
 
         String body = null;
-        try { body = response.asString(); } catch (Exception ignored) {}
+        try {
+            body = response.asString();
+        } catch (Exception ignored) {
+        }
 
         String actual = null;
-        try { actual = response.jsonPath().getString("details.name"); } catch (Exception ignored) {}
+        try {
+            actual = response.jsonPath().getString("details.name");
+        } catch (Exception ignored) {
+        }
 
         Assert.assertNotNull(actual, "No 'details.name' field in response. Body: " + body);
         Assert.assertEquals(actual, expectedDetailsName, "Unexpected 'details.name'. Body: " + body);
@@ -294,14 +332,21 @@ public class CategoryAPISteps {
         Assert.assertNotNull(response, "No response captured");
 
         String body = null;
-        try { body = response.asString(); } catch (Exception ignored) {}
+        try {
+            body = response.asString();
+        } catch (Exception ignored) {
+        }
 
         String actual = null;
-        try { actual = response.jsonPath().getString("details.name"); } catch (Exception ignored) {}
+        try {
+            actual = response.jsonPath().getString("details.name");
+        } catch (Exception ignored) {
+        }
 
         Assert.assertNotNull(actual, "No 'details.name' field in response. Body: " + body);
         Assert.assertTrue(actual.contains(expectedSubstring),
-                "Expected 'details.name' to contain [" + expectedSubstring + "] but was [" + actual + "]. Body: " + body);
+                "Expected 'details.name' to contain [" + expectedSubstring + "] but was [" + actual + "]. Body: "
+                        + body);
     }
 
     @When("I send a PUT request to {string} with body:")
@@ -321,9 +366,15 @@ public class CategoryAPISteps {
         Assert.assertEquals(getResp.getStatusCode(), 200, "Could not fetch category " + id + " after update");
 
         String actualName = null;
-        try { actualName = getResp.jsonPath().getString("name"); } catch (Exception ignored) {}
+        try {
+            actualName = getResp.jsonPath().getString("name");
+        } catch (Exception ignored) {
+        }
         if (actualName == null) {
-            try { actualName = getResp.jsonPath().getString("data.name"); } catch (Exception ignored) {}
+            try {
+                actualName = getResp.jsonPath().getString("data.name");
+            } catch (Exception ignored) {
+            }
         }
 
         Assert.assertNotNull(actualName, "Could not find category name in GET response");

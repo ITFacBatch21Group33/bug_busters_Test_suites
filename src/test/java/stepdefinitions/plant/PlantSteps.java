@@ -54,7 +54,7 @@ public class PlantSteps {
             for (String param : params) {
                 String[] keyVal = param.split("=");
                 if (keyVal.length > 1) {
-                     queryParams.put(keyVal[0], keyVal[1]);
+                    queryParams.put(keyVal[0], keyVal[1]);
                 }
             }
             response = PlantApiHelper.getPagedPlants(token, queryParams);
@@ -65,13 +65,13 @@ public class PlantSteps {
         } else if (endpoint.endsWith("/plants")) {
             response = PlantApiHelper.getAllPlants(token);
         } else {
-             if (endpoint.contains("/plants/")) {
+            if (endpoint.contains("/plants/")) {
                 try {
-                     String idStr = endpoint.substring(endpoint.lastIndexOf('/') + 1);
-                     int id = Integer.parseInt(idStr);
-                     response = PlantApiHelper.getPlantById(token, id);
+                    String idStr = endpoint.substring(endpoint.lastIndexOf('/') + 1);
+                    int id = Integer.parseInt(idStr);
+                    response = PlantApiHelper.getPlantById(token, id);
                 } catch (NumberFormatException e) {
-                     response = PlantApiHelper.getPlantById(token, 9999);
+                    response = PlantApiHelper.getPlantById(token, 9999);
                 }
             }
         }
@@ -92,7 +92,7 @@ public class PlantSteps {
 
     @Then("the plant response should contain a list of plants")
     public void the_plant_response_should_contain_a_list_of_plants() {
-         Assert.assertNotNull(response.jsonPath().getList("$"));
+        Assert.assertNotNull(response.jsonPath().getList("$"));
     }
 
     @Given("the plant database is empty")
@@ -124,34 +124,40 @@ public class PlantSteps {
         Assert.assertNotNull(response.jsonPath().get("name"));
         // Could assert values match body if passed in context, but for skeleton valid.
     }
+
     @Then("the updated plant should have name {string}")
     public void the_updated_plant_should_have_name(String expectedName) {
         String actualName = response.jsonPath().getString("name");
         Assert.assertEquals(actualName, expectedName);
     }
+
     @Then("the response should contain {int} plants")
     public void the_response_should_contain_plants(int count) {
-        List<?> list = response.jsonPath().getList("content"); 
-        if (list == null) list = response.jsonPath().getList("$");
+        List<?> list = response.jsonPath().getList("content");
+        if (list == null)
+            list = response.jsonPath().getList("$");
         Assert.assertTrue(list.size() <= count);
     }
 
     @Then("the plants returned by API should be sorted by {string} in {string} order")
     public void the_plants_returned_by_api_should_be_sorted_by_in_order(String field, String order) {
         List<java.util.Map<String, Object>> plants = response.jsonPath().getList("content");
-        if (plants == null) plants = response.jsonPath().getList("$");
-        
+        if (plants == null)
+            plants = response.jsonPath().getList("$");
+
         if (plants != null && !plants.isEmpty()) {
             for (int i = 0; i < plants.size() - 1; i++) {
                 Object v1 = plants.get(i).get(field);
-                Object v2 = plants.get(i+1).get(field);
+                Object v2 = plants.get(i + 1).get(field);
                 if (v1 instanceof Comparable && v2 instanceof Comparable) {
                     Comparable val1 = (Comparable) v1;
                     Comparable val2 = (Comparable) v2;
                     if ("asc".equalsIgnoreCase(order)) {
-                        Assert.assertTrue(val1.compareTo(val2) <= 0, "Not sorted ascending by " + field + ": " + val1 + " > " + val2);
+                        Assert.assertTrue(val1.compareTo(val2) <= 0,
+                                "Not sorted ascending by " + field + ": " + val1 + " > " + val2);
                     } else {
-                        Assert.assertTrue(val1.compareTo(val2) >= 0, "Not sorted descending by " + field + ": " + val1 + " < " + val2);
+                        Assert.assertTrue(val1.compareTo(val2) >= 0,
+                                "Not sorted descending by " + field + ": " + val1 + " < " + val2);
                     }
                 }
             }
