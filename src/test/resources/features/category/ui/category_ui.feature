@@ -167,3 +167,11 @@ Feature: Category Management UI
     When I navigate to the Categories page
     And I sort by "Name" "ascending" as a User
     Then as a User the list should be sorted by "Name" in "ascending" order
+
+  @User @UI @TC-USER-UI-CAT-010
+  Scenario: Sort category list by Parent Category as User
+    Given I login as a "User"
+    And multiple categories exist with various parent categories for User sorting
+    When I navigate to the Categories page
+    And I sort by "Parent Category" "ascending" as a User
+    Then as a User the list should be sorted by "Parent Category" in "ascending" order

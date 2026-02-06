@@ -53,6 +53,7 @@ public class CategoryUISteps {
         }
     }
 
+    @Then("I should see pagination controls")
     @Then("I should see category pagination controls")
     public void i_should_see_category_pagination_controls() {
         Assert.assertTrue(categoryPage.isPaginationVisible(), "Pagination controls should be visible");
@@ -480,6 +481,64 @@ public class CategoryUISteps {
             return;
         }
 
+        if ("Parent Category".equalsIgnoreCase(column)) {
+            List<String> parents = categoryPage.getParentCategoryTexts().stream()
+                    .map(s -> s == null ? "" : s.trim())
+                    .filter(s -> !s.isEmpty())
+                    .filter(s -> !s.equalsIgnoreCase("Main Category")) // ignore null-parent rows for stability
+                    .collect(java.util.stream.Collectors.toList());
+
+            Assert.assertTrue(parents.size() >= 2, "Need at least 2 non-main parent values to assert sorting.");
+
+            for (int i = 1; i < parents.size(); i++) {
+                String prev = parents.get(i - 1);
+                String curr = parents.get(i);
+                int cmp = curr.compareToIgnoreCase(prev);
+                if (ascending) Assert.assertTrue(cmp >= 0, "Parent Category not ascending: " + parents);
+                else Assert.assertTrue(cmp <= 0, "Parent Category not descending: " + parents);
+            }
+            return;
+        }
+
         throw new IllegalArgumentException("User sort check not implemented for column: " + column);
+    }
+
+    @Given("multiple categories exist with various parent categories for User sorting")
+    public void multiple_categories_exist_with_various_parent_categories_for_user_sorting() {
+        String token = AuthHelper.getAdminToken();
+        String sfx = randomLetters(2); // keep names short (<= 10 chars)
+
+        String parentA = "PA" + sfx;   // e.g., PAQZ
+        String parentB = "PB" + sfx;   // e.g., PBQZ
+
+        Integer parentAId = createOrGetCategoryId(token, parentA);
+        Integer parentBId = createOrGetCategoryId(token, parentB);
+
+        Assert.assertNotNull(parentAId, "Could not resolve parentId for " + parentA);
+        Assert.assertNotNull(parentBId, "Could not resolve parentId for " + parentB);
+
+        CategoryApiHelper.createCategory(token, "{\"name\":\"CA" + sfx + "\",\"parentId\":" + parentAId + "}");
+        CategoryApiHelper.createCategory(token, "{\"name\":\"CB" + sfx + "\",\"parentId\":" + parentBId + "}");
+        CategoryApiHelper.createCategory(token, "{\"name\":\"CC" + sfx + "\",\"parentId\":" + parentAId + "}");
+    }
+
+    private Integer createOrGetCategoryId(String token, String name) {
+        io.restassured.response.Response create =
+                CategoryApiHelper.createCategory(token, "{\"name\":\"" + name + "\",\"parentId\":null}");
+
+        if (create.getStatusCode() == 201) {
+            return create.jsonPath().getObject("id", Integer.class);
+        }
+
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("name", name);
+
+        io.restassured.response.Response get = CategoryApiHelper.getCategoriesWithParams(token, params);
+
+        Integer id = get.jsonPath().getObject("[0].id", Integer.class);
+        if (id == null) id = get.jsonPath().getObject("content[0].id", Integer.class);
+        if (id == null) id = get.jsonPath().getObject("data[0].id", Integer.class);
+        if (id == null) id = get.jsonPath().getObject("data.content[0].id", Integer.class);
+        return id;
     }
 }
