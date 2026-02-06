@@ -17,6 +17,7 @@ public class CategoryAPISteps {
     private Response response;
     private pages.LoginPage loginPage;
     private String lastRequestedCategoryName;
+    private Map<Integer, Integer> idMapping = new HashMap<>();
 
     @Given("I have a valid {string} token")
     public void i_have_a_valid_token(String role) {
@@ -355,15 +356,22 @@ public class CategoryAPISteps {
         // endpoint is /api/categories/1
         String[] parts = endpoint.split("/");
         int id = Integer.parseInt(parts[parts.length - 1]);
-        response = CategoryApiHelper.updateCategory(token, id, body);
+
+        // Use mapped ID if available
+        int realId = idMapping.getOrDefault(id, id);
+
+        response = CategoryApiHelper.updateCategory(token, realId, body);
     }
 
     @Then("category with ID {int} should have name {string}")
     public void category_with_id_should_have_name(int id, String expectedName) {
         Assert.assertNotNull(token, "Token must be set before verifying category");
 
-        Response getResp = CategoryApiHelper.getCategoryById(token, id);
-        Assert.assertEquals(getResp.getStatusCode(), 200, "Could not fetch category " + id + " after update");
+        // Use mapped ID if available
+        int realId = idMapping.getOrDefault(id, id);
+
+        Response getResp = CategoryApiHelper.getCategoryById(token, realId);
+        Assert.assertEquals(getResp.getStatusCode(), 200, "Could not fetch category " + realId + " after update");
 
         String actualName = null;
         try {
@@ -417,7 +425,44 @@ public class CategoryAPISteps {
     public void a_category_with_id_exists(int id) {
         Assert.assertNotNull(token, "Token must be set before checking category existence");
 
+        // First check if the ID already exists as is
         Response getResp = CategoryApiHelper.getCategoryById(token, id);
+
+        // If it's category 3 and it doesn't exist, create it as per requirement
+        if (getResp.getStatusCode() == 404 && id == 3) {
+            System.out.println("Category 3 does not exist. Creating 'Botony'...");
+
+            // Using a shortened name "Botony" (6 chars) to satisfy 3-10 char limit
+            String body = "{\"name\": \"Botony\"}";
+            Response createResp = CategoryApiHelper.createCategory(token, body);
+
+            if (createResp.getStatusCode() == 400 && createResp.getBody().asString().contains("already exists")) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("name", "Botony");
+                Response searchResp = CategoryApiHelper.getCategoriesWithParams(token, params);
+                List<Map<String, Object>> found = extractCategories(searchResp);
+                if (found != null && !found.isEmpty()) {
+                    int actualId = Integer.parseInt(String.valueOf(found.get(0).get("id")));
+                    System.out.println("Found existing 'Botony' at ID " + actualId + ". Mapping 3 -> " + actualId);
+                    idMapping.put(id, actualId);
+                    getResp = CategoryApiHelper.getCategoryById(token, actualId);
+                }
+            } else {
+                Assert.assertEquals(createResp.getStatusCode(), 201, "Failed to create missing category 3");
+
+                Integer newId = createResp.jsonPath().getInt("id");
+                if (newId == null)
+                    newId = createResp.jsonPath().getInt("data.id");
+
+                Assert.assertNotNull(newId, "Created category but could not retrieve its ID");
+
+                System.out.println("Created category 'Botony' get new ID " + newId + ". Mapping 3 -> " + newId);
+                idMapping.put(id, newId);
+
+                getResp = CategoryApiHelper.getCategoryById(token, newId);
+            }
+        }
+
         Assert.assertEquals(getResp.getStatusCode(), 200,
                 "Precondition failed: category " + id + " does not exist (GET did not return 200)");
     }

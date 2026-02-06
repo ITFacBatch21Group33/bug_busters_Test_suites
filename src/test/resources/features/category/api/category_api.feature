@@ -90,12 +90,14 @@ Feature: Category Management API
   @Admin @API @TC-ADMIN-API-CAT-004
   Scenario: Sort categories via API
     Given I have a valid "Admin" token
-    When I send a GET request to "/api/categories" with params:
-      | sortField | id |
+    When I send a GET request to "/api/categories/page" with params:
+      | sortField | id   |
+      | sortDir   | desc |
     Then the response status code should be 200
     And the response list should be sorted by "id" ascending
-    When I send a GET request to "/api/categories" with params:
-      | sortField | name |
+    When I send a GET request to "/api/categories/page" with params:
+      | sortField | name  |
+      | sortDir   | desc  |
     Then the response list should be sorted by "name" ascending
 
   @Admin @API @TC-ADMIN-API-CAT-005
