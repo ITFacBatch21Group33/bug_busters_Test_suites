@@ -8,13 +8,14 @@ import pages.plant.PlantPage;
 import pages.plant.EditPlantPage;
 import api.plant.PlantApiHelper;
 import utils.AuthHelper;
+import utils.BaseTest;
 import java.util.List;
 
 public class PlantUISteps {
     private PlantPage plantPage = new PlantPage(BaseTest.getDriver());
     private List<String> previousPageNames;
-    private pages.plant.EditPlantPage editPage;
-    private pages.plant.AddPlantPage addPage;
+    private pages.plant.EditPlantPage editPlantPage = new pages.plant.EditPlantPage(BaseTest.getDriver());
+    private pages.plant.AddPlantPage addPage = new pages.plant.AddPlantPage(BaseTest.getDriver());
 
     @Given("I have navigated to the Application")
     public void i_have_navigated_to_the_application() {
@@ -75,6 +76,11 @@ public class PlantUISteps {
     public void the_plant_should_be_displayed_in_the_list(String name) {
         List<String> names = plantPage.getPlantNames();
         Assert.assertTrue(names.contains(name), "Plant " + name + " not found in list: " + names);
+    }
+
+    @Then("I should see a plant {string} message")
+    public void i_should_see_a_plant_message(String msg) {
+        Assert.assertTrue(plantPage.isNoDataMessageDisplayed(), "Expected '" + msg + "' message to be displayed");
     }
 
     @When("I select category filter {string}")
@@ -258,9 +264,24 @@ public class PlantUISteps {
          Assert.assertTrue(editPlantPage.isQuantityErrorDisplayed());
     }
 
+    @Then("a price validation error should be shown")
+    public void a_price_validation_error_should_be_shown() {
+         Assert.assertTrue(editPlantPage.isPriceErrorDisplayed());
+    }
+
     @Then("I should not see quantity validation message on the Add Plant page")
     public void i_should_not_see_quantity_validation_message_on_the_add_plant_page() {
         Assert.assertFalse(addPage.isQuantityErrorDisplayed(), "Expected no quantity validation message on Add Plant page");
+    }
+
+    @When("I click the Cancel button")
+    public void i_click_the_cancel_button() {
+        editPlantPage.clickCancel();
+    }
+
+    @When("I click the Save button")
+    public void i_click_the_save_button() {
+        editPlantPage.clickSave();
     }
 
     @Then("I should be redirected to the plant list")
