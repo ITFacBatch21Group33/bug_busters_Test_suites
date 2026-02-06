@@ -160,12 +160,12 @@ Feature: Category Management API
   @User @API @TC-USER-API-CAT-006
   Scenario: Filter categories by parent category via API (positive)
     Given I have a valid "User" token
+    And a category with parentId 5 exists or I create it with name "Flowers"
     When I send a GET request to "/api/categories" with params:
       | parentId | 5 |
     Then the response status code should be 200
     And the response should contain at least one category
     And all categories in response should have parent_id 5
-
   @User @API @TC-USER-API-CAT-007
   Scenario: Filter categories by parent category via API (no results)
     Given I have a valid "User" token
@@ -193,10 +193,10 @@ Feature: Category Management API
     And the response list should be sorted by "name" ascending
 
   @User @API @TC-USER-API-CAT-010
-  Scenario: Sort categories by name via API (page endpoint)
+  Scenario: Sort categories by parentId via API (page endpoint)
     Given I have a valid "User" token
     When I send a GET request to "/api/categories/page" with params:
       | sortField | parentId |
-      | sortDir   | desc  |
+      | sortDir   | asc  |
     Then the response status code should be 200
-    And the response list should be sorted by "name" ascending
+    And the response list should be sorted by "parentId" ascending

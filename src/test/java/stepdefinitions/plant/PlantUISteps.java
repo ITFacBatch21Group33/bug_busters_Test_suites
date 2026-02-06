@@ -223,7 +223,7 @@ public class PlantUISteps {
         // Ensure other mandatory fields are filled for the success case
         editPlantPage.enterPrice("25.0");
         editPlantPage.enterQuantity("50");
-        editPlantPage.selectCategory("Flower");
+        editPlantPage.selectFirstCategory();
     }
 
     @Then("the plant should be saved successfully")
@@ -239,7 +239,7 @@ public class PlantUISteps {
         editPlantPage.enterPrice("20.0");
         editPlantPage.enterQuantity("10");
         // Assuming "Flower" is a valid category in the dropdown based on HTML dump
-        editPlantPage.selectCategory("Flower");
+        editPlantPage.selectFirstCategory(); 
     }
 
     @Then("the plant should be added successfully")

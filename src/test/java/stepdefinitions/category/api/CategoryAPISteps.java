@@ -381,6 +381,38 @@ public class CategoryAPISteps {
         Assert.assertEquals(actualName, expectedName, "Category name was not updated");
     }
 
+    @Given("a category with parentId {int} exists or I create it with name {string}")
+    public void a_category_with_parent_id_exists_or_i_create_it_with_name(int parentId, String name) {
+        // We need to check if ANY category exists with this parentId.
+        // We can reuse the helper logic (which we assume works by filtering).
+        // If we were just checking existence of ID=5, it would be easier.
+        // But the requirement implies we need a child of 5.
+
+        // First, we need a token to query. Explicitly get Admin token to be safe and
+        // able to create.
+        // (Scenario says "Given I have a valid 'User' token" comes AFTER, but checking
+        // here means we might need Admin rights if current token isn't enough,
+        // or just use Admin token for setup)
+        String adminToken = utils.AuthHelper.getAdminToken();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("parentId", parentId);
+        Response resp = CategoryApiHelper.getCategoriesWithParams(adminToken, params);
+
+        List<Map<String, Object>> categories = extractCategories(resp);
+        boolean exists = categories != null && !categories.isEmpty();
+
+        if (!exists) {
+            System.out.println("Category with parentId " + parentId + " not found. Creating new one: " + name);
+            // Create it
+            // Try nested object format which is more common for object references
+            String body = String.format("{\"name\": \"%s\", \"parent\": {\"id\": %d}}", name, parentId);
+            Response createResp = CategoryApiHelper.createCategory(adminToken, body);
+            Assert.assertEquals(createResp.getStatusCode(), 201,
+                    "Failed to create setup category. Body: " + createResp.asString());
+        }
+    }
+
     @Given("a category with ID {int} exists")
     public void a_category_with_id_exists(int id) {
         Assert.assertNotNull(token, "Token must be set before checking category existence");
