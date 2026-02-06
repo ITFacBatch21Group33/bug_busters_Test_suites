@@ -1,10 +1,9 @@
 package stepdefinitions.plant;
 
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
+import io.cucumber.java.en.Given;
 import org.testng.Assert;
-import utils.BaseTest;
 import pages.plant.PlantPage;
 import pages.plant.EditPlantPage;
 import api.plant.PlantApiHelper;
@@ -12,9 +11,10 @@ import utils.AuthHelper;
 import java.util.List;
 
 public class PlantUISteps {
-    
-    PlantPage plantPage = new PlantPage(BaseTest.getDriver());
-    EditPlantPage editPlantPage = new EditPlantPage(BaseTest.getDriver());
+    private PlantPage plantPage = new PlantPage(BaseTest.getDriver());
+    private List<String> previousPageNames;
+    private pages.plant.EditPlantPage editPage;
+    private pages.plant.AddPlantPage addPage;
 
     @Given("I have navigated to the Application")
     public void i_have_navigated_to_the_application() {
@@ -77,10 +77,17 @@ public class PlantUISteps {
         Assert.assertTrue(names.contains(name), "Plant " + name + " not found in list: " + names);
     }
 
-    @Then("I should see a plant {string} message")
-    public void i_should_see_a_plant_message(String msg) {
-        if (msg.contains("No plants")) {
-            Assert.assertTrue(plantPage.isNoDataMessageDisplayed());
+    @When("I select category filter {string}")
+    public void i_select_category_filter(String category) {
+        plantPage.selectCategoryFilter(category);
+    }
+
+    @Then("only plants belonging to {string} are displayed")
+    public void only_plants_belonging_to_are_displayed(String category) {
+        java.util.List<String> cats = plantPage.getPlantCategories();
+        Assert.assertFalse(cats.isEmpty(), "Expected filtered results to show at least one plant");
+        for (String c : cats) {
+            Assert.assertEquals(c, category, "Expected plant category to match filter");
         }
     }
 
@@ -164,9 +171,10 @@ public class PlantUISteps {
         editPlantPage.clearMandatoryFields();
     }
 
-    @When("I click the Save button")
-    public void i_click_the_save_button() {
-        editPlantPage.clickSave();
+    @Then("I should see validation messages for mandatory fields on the Add Plant page")
+    public void i_should_see_validation_messages_for_mandatory_fields_on_the_add_plant_page() {
+        Assert.assertTrue(addPage.isNameErrorDisplayed() || addPage.isPriceErrorDisplayed() || addPage.isQuantityErrorDisplayed(),
+                "Expected at least one validation message for mandatory fields on Add Plant page");
     }
 
     @Then("validation messages should be shown for mandatory fields")
@@ -235,9 +243,9 @@ public class PlantUISteps {
         editPlantPage.enterPrice(String.valueOf(price));
     }
 
-    @Then("a price validation error should be shown")
-    public void a_price_validation_error_should_be_shown() {
-        Assert.assertTrue(editPlantPage.isPriceErrorDisplayed());
+    @Then("I should see price validation message on the Add Plant page")
+    public void i_should_see_price_validation_message_on_the_add_plant_page() {
+        Assert.assertTrue(addPage.isPriceErrorDisplayed(), "Expected price validation message on Add Plant page");
     }
 
     @When("I enter quantity {int}")
@@ -250,9 +258,9 @@ public class PlantUISteps {
          Assert.assertTrue(editPlantPage.isQuantityErrorDisplayed());
     }
 
-    @When("I click the Cancel button")
-    public void i_click_the_cancel_button() {
-        editPlantPage.clickCancel();
+    @Then("I should not see quantity validation message on the Add Plant page")
+    public void i_should_not_see_quantity_validation_message_on_the_add_plant_page() {
+        Assert.assertFalse(addPage.isQuantityErrorDisplayed(), "Expected no quantity validation message on Add Plant page");
     }
 
     @Then("I should be redirected to the plant list")

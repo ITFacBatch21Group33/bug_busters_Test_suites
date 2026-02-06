@@ -1,9 +1,11 @@
-Feature: Plant UI Management
-  As a User and Admin
-  I want to interact with the Plant Management UI
+Feature: Plant Management UI
+  As a User
+  I want to view the plant list
+  So that I can browse plants in the system
 
   Background:
-    Given I have navigated to the Application
+    Given the application is running
+    And I am on the Login page
 
   # User UI Tests - Filter Plants
   @User @UI @TC-USER-UI-PLANT-001
