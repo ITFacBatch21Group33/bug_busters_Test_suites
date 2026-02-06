@@ -252,10 +252,10 @@ public class PlantUISteps {
         Assert.assertTrue(plantPage.isPlantListDisplayed());
     }
 
-    @When("I enter price as {int}")
-    public void i_enter_price_as(int price) {
-        editPlantPage.enterPrice(String.valueOf(price));
-    }
+    // @When("I enter price as {int}")
+    // public void i_enter_price_as(int price) {
+    //     editPlantPage.enterPrice(String.valueOf(price));
+    // }
 
     @Then("I should see price validation message on the Add Plant page")
     public void i_should_see_price_validation_message_on_the_add_plant_page() {
@@ -329,7 +329,7 @@ public class PlantUISteps {
     @Given("enough plants exist for pagination")
     public void enough_plants_exist_for_pagination() {
         String adminToken = AuthHelper.getAdminToken();
-        PlantApiHelper.deleteAllPlants(adminToken);
+        // PlantApiHelper.deleteAllPlants(adminToken);
         PlantApiHelper.createMultiplePlants(adminToken, 25);
     }
 
