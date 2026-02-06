@@ -30,9 +30,7 @@ public class PlantPage {
     private By searchBtn = By.xpath("//button[contains(text(),'Search')]");
 
 
-    public void clickSearch() {
-        driver.findElement(searchButton).click();
-    }
+
 
     public void searchFor(String query) {
         enterSearchText(query);
@@ -41,7 +39,7 @@ public class PlantPage {
 
     public java.util.List<String> getPlantNames() {
         return driver.findElements(plantRows).stream()
-                .map(row -> row.findElement(By.xpath("td[2]")).getText())
+                .map(row -> row.findElement(By.xpath("td[1]")).getText())
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -82,23 +80,11 @@ public class PlantPage {
         }
     }
 
-    public List<String> getPlantNames() {
-         org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver,
-                java.time.Duration.ofSeconds(20));
-        wait.until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(plantRows));
-        return driver.findElements(By.xpath("//table/tbody/tr/td[1]"))
-                .stream().map(WebElement::getText).collect(Collectors.toList());
-    }
 
-    public List<Double> getPlantPrices() {
-        return driver.findElements(By.xpath("//table/tbody/tr/td[3]"))
-                .stream().map(e -> Double.parseDouble(e.getText().replace("$", ""))).collect(Collectors.toList());
-    }
 
-    public List<Integer> getPlantQuantities() {
-        return driver.findElements(By.xpath("//table/tbody/tr/td[4]"))
-                .stream().map(e -> Integer.parseInt(e.getText())).collect(Collectors.toList());
-    }
+
+
+
     
     public boolean isEditButtonVisible() {
          return !driver.findElements(By.cssSelector("a[title='Edit']")).isEmpty();
@@ -175,9 +161,7 @@ public class PlantPage {
     public String SearchBoxValue() {
         return driver.findElement(searchBox).getAttribute("value");
     }
-    public void clickAddPlant() {
-        driver.findElement(addPlantButton).click();
-    }
+
     public void selectCategoryFilter(String categoryName) {
         Select sel = new Select(driver.findElement(By.id("category-filter")));
         sel.selectByVisibleText(categoryName);
@@ -204,9 +188,9 @@ public class PlantPage {
     }
 
     public java.util.List<String> getPlantCategories() {
-        // Assuming category is in the 3rd column (td[3])
+        // Assuming category is in the 2nd column (td[2])
         return driver.findElements(plantRows).stream()
-                .map(row -> row.findElement(By.xpath("td[3]")).getText().trim())
+                .map(row -> row.findElement(By.xpath("td[2]")).getText().trim())
                 .collect(java.util.stream.Collectors.toList());
     }
 
