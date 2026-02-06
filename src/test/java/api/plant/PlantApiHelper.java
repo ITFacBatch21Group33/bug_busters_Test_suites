@@ -77,4 +77,22 @@ public class PlantApiHelper {
         resp.then().log().ifError();
         return resp;
     }
+    public static void deleteAllPlants(String token) {
+        Response response = getAllPlants(token);
+        if (response.statusCode() == 200) {
+            java.util.List<Integer> ids = response.jsonPath().getList("id");
+            if (ids != null) {
+                for (Integer id : ids) {
+                    deletePlant(token, id);
+                }
+            }
+        }
+    }
+
+    public static void createMultiplePlants(String token, int count) {
+        for (int i = 0; i < count; i++) {
+             String body = String.format("{\"name\": \"BulkPlant%d\", \"price\": 10.0, \"quantity\": 10}", i);
+             createPlant(token, 1, body); // Assuming category 1 exists
+        }
+    }
 }
