@@ -82,7 +82,8 @@ Feature: Category Management API
   @Admin @API @TC-ADMIN-API-CAT-003
   Scenario: Filter categories by parent via API
     Given I have a valid "Admin" token
-    When I send a GET request to "/api/categories" with params:
+    And category with ID 10 exists with at least 2 children
+    When I send a GET request to "/api/categories/page" with params:
       | parentId | 10 |
     Then the response status code should be 200
     And all categories in response should have parent_id 10

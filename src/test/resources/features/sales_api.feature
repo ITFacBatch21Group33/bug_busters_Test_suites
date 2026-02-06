@@ -28,7 +28,7 @@ Feature: Sales Management API
   Scenario: Delete sale successfully
     Given the API is available
     Given I have a valid "Admin" token for sales API
-    When I send a DELETE request to delete sale with id 2
+    When I send a DELETE request to delete sale with id 3
     Then the sales API response status code should be 204
     And the sales API response should have no content
 
@@ -73,6 +73,6 @@ Feature: Sales Management API
   Scenario: Get a specific sale details
     Given the API is available
     Given I have a valid "User" token for sales API
-    When I send a GET request to retrieve sale with id 5
+    When I send a GET request to retrieve sale with id 10
     Then the sales API response status code should be 200
     And the sales API response should contain sale details

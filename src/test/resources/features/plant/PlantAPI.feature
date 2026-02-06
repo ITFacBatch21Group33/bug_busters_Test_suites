@@ -125,7 +125,7 @@ Feature: Plant API Management
   @Admin @API @TC-ADMIN-API-PLANT-001
   Scenario: Create plant successfully (TC-ADMIN-API-PLANT-001)
     Given I have a valid "Admin" token for plant API
-    When I send a POST request to plant endpoint "/api/plants/category/3" with body:
+    When I send a POST request to plant endpoint "/api/plants/category/2" with body:
       """
       {
         "name": "New Plant 001",
@@ -151,7 +151,7 @@ Feature: Plant API Management
   @Admin @API @TC-ADMIN-API-PLANT-003
   Scenario: Duplicate plant name handling (Create) (TC-ADMIN-API-PLANT-003)
     Given I have a valid "Admin" token for plant API
-    When I send a POST request to plant endpoint "/api/plants/category/3" with body:
+    When I send a POST request to plant endpoint "/api/plants/category/2" with body:
       """
       {
         "name": "Palm",

@@ -31,10 +31,10 @@ Feature: Sales Management UI
   @Admin @UI @TC-ADMIN-UI-SALES-004
   Scenario: Admin creates sale successfully
     Given I login as an "Admin"
-    And a plant with name "A03" exists
+    And a plant with name "Mint" exists
     When I navigate to the sales page
     And I click the Sell Plant button
-    And I select plant "A03"
+    And I select plant "Mint"
     And I enter quantity "5"
     And I click the Sell button
     Then the sale should be created successfully

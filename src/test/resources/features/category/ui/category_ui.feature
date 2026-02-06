@@ -94,13 +94,13 @@ Feature: Category Management UI
   @Admin @UI @TC-ADMIN-UI-CAT-006
   Scenario: Verify successful creation of a Main Category
     Given I login as an "Admin"
-    And category with name "Herbs" does not exist
+    And category with name "Fruitfgh" does not exist
     And I am on the Add Category page
-    When I enter "Herbs" in the "Category Name" field
+    When I enter "Fruitfgh" in the "Category Name" field
     And I leave "Parent Category" empty
     And I click "Save" on the Add Category page
     Then I should be redirected to the Categories page
-    And "Herbs" should appear in the list as a Main Category
+    And "Fruitfgh" should appear in the list as a Main Category
   
   @Admin @UI @TC-ADMIN-UI-CAT-007
   Scenario: Verify validation for empty Category Name

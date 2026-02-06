@@ -54,6 +54,18 @@ public class CategoryAPISteps {
     @When("I send a GET request to {string} with params:")
     public void i_send_a_get_request_to_with_params(String endpoint, Map<String, String> params) {
         Map<String, Object> queryParams = new HashMap<>(params);
+
+        // Handle mapped IDs
+        if (queryParams.containsKey("parentId")) {
+            try {
+                int pid = Integer.parseInt(String.valueOf(queryParams.get("parentId")));
+                if (idMapping.containsKey(pid)) {
+                    queryParams.put("parentId", idMapping.get(pid));
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
         if (endpoint != null && endpoint.contains("/categories/page")) {
             response = CategoryApiHelper.getCategoriesPageWithParams(token, queryParams);
         } else {
@@ -99,12 +111,14 @@ public class CategoryAPISteps {
 
     @Then("all categories in response should have parent_id {int}")
     public void all_categories_in_response_should_have_parent_id(int parentId) {
+        // Use mapped ID if available
+        int realParentId = idMapping.getOrDefault(parentId, parentId);
         List<Map<String, Object>> categories = extractCategories(response);
         Assert.assertNotNull(categories, "No categories list found. Body: " + response.asString());
         Assert.assertFalse(categories.isEmpty(), "Expected non-empty filtered results. Body: " + response.asString());
 
-        Response parentResp = CategoryApiHelper.getCategoryById(token, parentId);
-        Assert.assertEquals(parentResp.getStatusCode(), 200, "Could not fetch parent category " + parentId);
+        Response parentResp = CategoryApiHelper.getCategoryById(token, realParentId);
+        Assert.assertEquals(parentResp.getStatusCode(), 200, "Could not fetch parent category " + realParentId);
         String expectedParentName = parentResp.jsonPath().getString("name");
         Assert.assertNotNull(expectedParentName, "Parent category has no 'name' field");
 
@@ -497,5 +511,52 @@ public class CategoryAPISteps {
     public void i_am_on_the_login_page() {
         loginPage = new pages.LoginPage(utils.BaseTest.getDriver());
         loginPage.navigateTo();
+    }
+
+    @Given("category with ID {int} exists with at least {int} children")
+    public void category_with_id_exists_with_at_least_children(int parentId, int childrenCount) {
+        String token = utils.AuthHelper.getAdminToken();
+
+        // 1. Check if parent exists
+        Response parentResp = CategoryApiHelper.getCategoryById(token, parentId);
+        int realParentId = parentId;
+
+        if (parentResp.getStatusCode() == 404) {
+            System.out.println("Parent category " + parentId + " not found. Creating...");
+            String body = "{\"name\": \"Parent" + randomLetters(3) + "\"}";
+            Response createResp = CategoryApiHelper.createCategory(token, body);
+
+            if (createResp.getStatusCode() == 201) {
+                Integer newId = createResp.jsonPath().getInt("id");
+                if (newId == null)
+                    newId = createResp.jsonPath().getInt("data.id");
+                realParentId = newId;
+                idMapping.put(parentId, realParentId);
+                System.out.println("Created parent category. Map " + parentId + " -> " + realParentId);
+            } else {
+                Assert.fail("Failed to create parent category");
+            }
+        } else if (parentResp.getStatusCode() == 200) {
+            // It exists, use it
+        }
+
+        // 2. Check children
+        Map<String, Object> params = new HashMap<>();
+        params.put("parentId", realParentId);
+        Response childrenResp = CategoryApiHelper.getCategoriesWithParams(token, params);
+        List<Map<String, Object>> children = extractCategories(childrenResp);
+
+        int currentCount = (children == null) ? 0 : children.size();
+
+        if (currentCount < childrenCount) {
+            int needed = childrenCount - currentCount;
+            System.out.println(
+                    "Parent " + realParentId + " has " + currentCount + " children. Creating " + needed + " more.");
+            for (int i = 0; i < needed; i++) {
+                String childBody = "{\"name\": \"Child" + randomLetters(3) + "\", \"parent\": {\"id\": " + realParentId
+                        + "}}";
+                CategoryApiHelper.createCategory(token, childBody);
+            }
+        }
     }
 }
