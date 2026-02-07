@@ -1,4 +1,4 @@
-package stepdefinitions;
+package stepdefinitions.sale;
 
 import api.SalesApiHelper;
 import io.cucumber.java.en.Given;

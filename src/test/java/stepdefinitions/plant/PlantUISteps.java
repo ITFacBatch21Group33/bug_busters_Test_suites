@@ -37,11 +37,9 @@ public class PlantUISteps {
             password = utils.ConfigLoader.getProperty("admin.password");
         }
 
-        loginPage.navigateTo(); // Ensure we are on login page
+        loginPage.navigateTo(); 
         loginPage.login(username, password);
-        // After login, navigate to Plants page explicitly to ensure we are in the right
-        // place for Plant tests
-        plantPage.navigateTo();
+       plantPage.navigateTo();
     }
 
     @Given("I login as an {string} for UI")
@@ -52,7 +50,7 @@ public class PlantUISteps {
     @Given("plants exist in the system")
     public void plants_exist_in_the_system() {
         String adminToken = AuthHelper.getAdminToken();
-        // Ensure at least one plant
+        
         PlantApiHelper.createPlant(adminToken, 1, "{\"name\": \"Rose\", \"price\": 10.0, \"quantity\": 20}");
         PlantApiHelper.createPlant(adminToken, 1, "{\"name\": \"Tulip\", \"price\": 15.0, \"quantity\": 30}");
         PlantApiHelper.createPlant(adminToken, 1, "{\"name\": \"Daisy\", \"price\": 12.0, \"quantity\": 15}");
@@ -66,7 +64,7 @@ public class PlantUISteps {
 
     @Given("categories exist in the system")
     public void categories_exist_in_the_system() {
-        // Assumed
+        
     }
 
     @When("I enter plant name {string} in the search field")
@@ -116,10 +114,7 @@ public class PlantUISteps {
 
     @Then("only plants in category {string} should be displayed")
     public void only_plants_in_category_should_be_displayed(String category) {
-        // Validation logic - maybe check API or assume UI reflects correctly if not
-        // failing
-        // Real validation would check each row's category column if visible
-    }
+        }
 
     @When("I click {string}")
     public void i_click(String buttonOrLink) {
@@ -138,7 +133,7 @@ public class PlantUISteps {
             // assert sorted
         } else if (field.equalsIgnoreCase("price")) {
             List<Double> prices = plantPage.getPlantPrices();
-            // assert sorted
+            
         }
     }
 
@@ -170,9 +165,7 @@ public class PlantUISteps {
 
     @Then("the Add Plant page should be open")
     public void the_add_plant_page_should_be_open() {
-        // Assert URL or Title
-        // For now, assume if no error, we are good or check a field
-    }
+         }
 
     @Given("I am on the Add Plant page")
     public void i_am_on_the_add_plant_page() {
@@ -216,10 +209,7 @@ public class PlantUISteps {
     public void i_enter_a_plant_name_with_characters(int count) {
         String name;
         if (count == 10) {
-            // Generate unique 10-char name: "Plant" + 5 digits
-            // System.currentTimeMillis() % 100000 ensures 5 digits (00000-99999)
-            // We use String.format to ensure padding if needed, though rare to be small
-            long id = System.currentTimeMillis() % 100000;
+           long id = System.currentTimeMillis() % 100000;
             name = String.format("Plant%05d", id);
         } else {
             name = "Valid Name";
@@ -229,9 +219,7 @@ public class PlantUISteps {
         // Ensure other mandatory fields are filled for the success case
         editPlantPage.enterPrice("25.0");
         editPlantPage.enterQuantity("50");
-        // Use retry-capable selection or generic one
-        // editPlantPage.selectCategory("Indoor"); 
-        editPlantPage.selectAnyCategory();
+         editPlantPage.selectAnyCategory();
     }
 
     @Then("the plant should be saved successfully")
@@ -255,11 +243,7 @@ public class PlantUISteps {
         Assert.assertTrue(plantPage.isPlantListDisplayed());
     }
 
-    // @When("I enter price as {int}")
-    // public void i_enter_price_as(int price) {
-    //     editPlantPage.enterPrice(String.valueOf(price));
-    // }
-
+   
     @Then("I should see price validation message on the Add Plant page")
     public void i_should_see_price_validation_message_on_the_add_plant_page() {
         Assert.assertTrue(addPage.isPriceErrorDisplayed(), "Expected price validation message on Add Plant page");
@@ -354,10 +338,7 @@ public class PlantUISteps {
         } else if (btn.equals("Previous")) {
             plantPage.clickPreviousPage();
         }
-        // Small wait for table refresh might be needed, but explicit wait in getPlantNames?
-        // getPlantNames does NOT wait for staleness, it just gets elements.
-        // We might need a small sleep or better wait. 
-        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+         try { Thread.sleep(1000); } catch (InterruptedException e) {}
     }
 
     @Then("I should see different plants")

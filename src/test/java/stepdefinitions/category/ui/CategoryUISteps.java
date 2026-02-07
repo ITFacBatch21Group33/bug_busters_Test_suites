@@ -15,11 +15,6 @@ import utils.BaseTest;
 public class CategoryUISteps {
     private CategoryPage categoryPage = new CategoryPage(BaseTest.getDriver());
 
-    /**
-     * Backwards-compatible access to CategoryPage parent text.
-     * Some project versions don't expose getParentTextForCategory(String) on
-     * CategoryPage.
-     */
     private String getParentTextForCategorySafely(String categoryName) {
         try {
             java.lang.reflect.Method m = categoryPage().getClass()
@@ -93,11 +88,7 @@ public class CategoryUISteps {
         io.restassured.response.Response response = CategoryApiHelper.getAllCategories(token);
         if (response.getStatusCode() == 200) {
             List<Integer> ids = response.jsonPath().getList("id");
-            // Depending on response structure, might be "content.id" if paginated default,
-            // but getAllCategories usually returns list.
-            // CategoryApiHelper.getAllCategories points to /categories without params.
-            // If it returns list:
-            if (ids != null) {
+              if (ids != null) {
                 for (Integer id : ids) {
                     CategoryApiHelper.deleteCategory(token, id);
                 }
@@ -146,7 +137,7 @@ public class CategoryUISteps {
 
     @Then("I should not see {string} options")
     public void i_should_not_see_options(String option) {
-        // Verify absence of Edit/Delete buttons per row
+      
     }
 
     @Given("a parent category {string} exists with child categories")
@@ -182,13 +173,12 @@ public class CategoryUISteps {
 
     @When("I sort by {string} {string}")
     public void i_sort_by(String column, String order) {
-        // Click headers
+       
     }
 
     @Then("the list should be sorted by {string} in {string} order")
     public void the_list_should_be_sorted_by_in_order(String column, String order) {
-        // Verify sort order
-
+      
     }
 
     // Create a main category
@@ -241,8 +231,6 @@ public class CategoryUISteps {
                             }
                         }
                     } else {
-                        // Strategy 2: Fallback to getAllPlants if search didn't return anything (or API
-                        // doesn't support filter)
                         System.err.println("DEBUG: Search yielded nothing. Falling back to getAllPlants...");
                         io.restassured.response.Response plantsResp = api.plant.PlantApiHelper.getAllPlants(token);
                         System.err.println("DEBUG: getAllPlants status: " + plantsResp.getStatusCode());
@@ -339,7 +327,6 @@ public class CategoryUISteps {
         if (!"Parent Category".equals(fieldName)) {
             throw new IllegalArgumentException("Unsupported field: " + fieldName);
         }
-        // In your UI “Main Category” represents no parent
         categoryPage().selectParentCategory("Main Category");
     }
 
@@ -450,7 +437,6 @@ public class CategoryUISteps {
             parentId = createResp.jsonPath().getObject("id", Integer.class);
         }
 
-        // If already exists (or create failed), fetch by name
         if (parentId == null) {
             java.util.Map<String, Object> params = new java.util.HashMap<>();
             params.put("name", parentName);
@@ -643,7 +629,6 @@ public class CategoryUISteps {
                         }
                     }
                 } else {
-                    // Backward compatibility: if no suffix, check all
                     if (parent != null && !parent.trim().isEmpty() &&
                             !parent.equalsIgnoreCase("Main Category") && !parent.equals("-")) {
                         filteredParents.add(parent.trim());
@@ -655,7 +640,7 @@ public class CategoryUISteps {
                 System.out.println(
                         "INFO: Skipping Parent Category sort verification - column not sortable or insufficient data. Found: "
                                 + filteredParents);
-                return; // Skip verification if column wasn't sortable
+                return; 
             }
 
             for (int i = 1; i < filteredParents.size(); i++) {
@@ -676,10 +661,10 @@ public class CategoryUISteps {
     @Given("multiple categories exist with various parent categories for User sorting")
     public void multiple_categories_exist_with_various_parent_categories_for_user_sorting() {
         String token = AuthHelper.getAdminToken();
-        currentTestSuffix = randomLetters(2); // keep names short (<= 10 chars), store for verification
+        currentTestSuffix = randomLetters(2);
 
-        String parentA = "PA" + currentTestSuffix; // e.g., PAQZ
-        String parentB = "PB" + currentTestSuffix; // e.g., PBQZ
+        String parentA = "PA" + currentTestSuffix; 
+        String parentB = "PB" + currentTestSuffix;
 
         Integer parentAId = createOrGetCategoryId(token, parentA);
         Integer parentBId = createOrGetCategoryId(token, parentB);
@@ -721,12 +706,6 @@ public class CategoryUISteps {
     private void deleteDependentSales(String token, int plantId) {
         try {
             System.err.println("DEBUG: Checking dependent sales for plant " + plantId);
-            // Assuming ConfigLoader is available via utils package which is likely imported
-            // or available
-            // If not, we might need to find where ConfigLoader is.
-            // Based on previous context, PlantApiHelper uses it.
-            // We'll try to use fully qualified name if possible, or just standard
-            // instantiation.
             String baseUrl = "http://localhost:8080"; // Fallback default
             try {
                 baseUrl = utils.ConfigLoader.getProperty("api.base.url");

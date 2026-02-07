@@ -53,6 +53,8 @@ Feature: Plant Management UI
     When I click "Sort by Quantity"
     Then the plants in the UI should be sorted by "quantity" in "ascending" order
 
+  # ------------------
+
   @User @UI @TC-USER-UI-PLANT-007
   Scenario: View Plant List (TC-USER-UI-PLANT-007)
     Given I login as a "User" for UI
@@ -66,6 +68,7 @@ Feature: Plant Management UI
     And no plants exist in the system
     When I navigate to the Plant Management page
     Then I should see a plant "No plants found" message
+
 
   @User @UI @TC-USER-UI-PLANT-009
   Scenario: Reset Button (TC-USER-UI-PLANT-009)
@@ -168,6 +171,9 @@ Feature: Plant Management UI
     When I click the Cancel button
     Then I should be redirected to the plant list
 
+  # -----
+
+  
   @Admin @UI @TC-ADMIN-UI-PLANT-009
   Scenario: Edit Plant – Mandatory Fields (TC-ADMIN-UI-PLANT-009)
     Given I login as an "Admin" for UI

@@ -15,7 +15,7 @@ public class PlantSteps {
 
     @Given("the Plant API is available")
     public void the_plant_api_is_available() {
-        // Assume API is up
+      
     }
 
     @Given("I have a valid {string} token for plant API")
@@ -79,7 +79,7 @@ public class PlantSteps {
 
     @When("I send a PUT request to plant endpoint {string} with body:")
     public void i_send_a_put_request_to_plant_endpoint_with_body(String endpoint, String body) {
-        // Extract ID
+        
         String[] parts = endpoint.split("/");
         int id = Integer.parseInt(parts[parts.length - 1]);
         response = PlantApiHelper.updatePlant(token, id, body);
@@ -97,7 +97,7 @@ public class PlantSteps {
 
     @Given("the plant database is empty")
     public void the_plant_database_is_empty() {
-        // Setup state
+        
     }
 
     @Then("the plant response list should be empty")
@@ -108,7 +108,7 @@ public class PlantSteps {
 
     @Given("a plant with ID {int} exists")
     public void a_plant_with_id_exists(int id) {
-        // Setup state
+       
     }
 
     @Then("the plant response body should contain the plant details")
@@ -120,9 +120,9 @@ public class PlantSteps {
 
     @Then("the plant response should contain the updated plant details")
     public void the_plant_response_should_contain_the_updated_plant_details() {
-        // Verify update
+      
         Assert.assertNotNull(response.jsonPath().get("name"));
-        // Could assert values match body if passed in context, but for skeleton valid.
+        
     }
 
     @Then("the updated plant should have name {string}")

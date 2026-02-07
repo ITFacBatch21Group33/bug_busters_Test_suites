@@ -36,15 +36,12 @@ public class CategoryAPISteps {
 
     @Given("the API is available")
     public void the_api_is_available() {
-        // Check health
+        // Check health of api
     }
 
     @When("I send a GET request to {string}")
     public void i_send_a_get_request_to(String endpoint) {
         if (token != null) {
-            // We are using helper which hardcodes base URI + /categories.
-            // Need to adjust helper or use it selectively.
-            // For simplicity, assumed endpoint matches helper's base.
             response = CategoryApiHelper.getAllCategories(token);
         } else {
             response = CategoryApiHelper.getCategoriesNoAuth();
@@ -85,12 +82,11 @@ public class CategoryAPISteps {
 
     @Then("the response should contain a paginated list of categories")
     public void the_response_should_contain_a_paginated_list_of_categories() {
-        // check specific pagination fields if wrapped, e.g. "content", "pageable"
     }
 
     @Then("the response list should contain categories matching {string}")
     public void the_response_list_should_contain_categories_matching(String name) {
-        // Assert json path content
+
     }
 
     @Then("the response list should be empty")
@@ -99,7 +95,6 @@ public class CategoryAPISteps {
         Assert.assertTrue(list == null || list.isEmpty());
     }
 
-    // Filter Categories by parent_id
 
     @Then("the response should contain at least one category")
     public void the_response_should_contain_at_least_one_category() {
@@ -138,8 +133,7 @@ public class CategoryAPISteps {
     private List<Map<String, Object>> extractCategories(Response resp) {
         Assert.assertNotNull(resp, "No response captured");
 
-        // Common response shapes: [] OR {content: []} OR {data: []} OR {data: {content:
-        // []}}
+        // Common response type: [] 
         List<Map<String, Object>> list = safeGetList(resp, "$");
         if (list != null)
             return list;
@@ -166,7 +160,7 @@ public class CategoryAPISteps {
             if (raw == null)
                 return null;
 
-            // Ensure it’s actually a list of objects/maps
+            // Ensure list of objects
             List<Map<String, Object>> mapped = new ArrayList<>();
             for (Object o : raw) {
                 if (!(o instanceof Map))
@@ -237,7 +231,6 @@ public class CategoryAPISteps {
 
     @When("I send a POST request to {string} with body:")
     public void i_send_a_post_request_to_with_body(String endpoint, String body) {
-        // Added random suffix to avoid duplicates
         String resolvedBody = body.replace("${suffix}", randomLetters(3));
         lastRequestedCategoryName = extractName(resolvedBody);
 
@@ -405,17 +398,7 @@ public class CategoryAPISteps {
 
     @Given("a category with parentId {int} exists or I create it with name {string}")
     public void a_category_with_parent_id_exists_or_i_create_it_with_name(int parentId, String name) {
-        // We need to check if ANY category exists with this parentId.
-        // We can reuse the helper logic (which we assume works by filtering).
-        // If we were just checking existence of ID=5, it would be easier.
-        // But the requirement implies we need a child of 5.
-
-        // First, we need a token to query. Explicitly get Admin token to be safe and
-        // able to create.
-        // (Scenario says "Given I have a valid 'User' token" comes AFTER, but checking
-        // here means we might need Admin rights if current token isn't enough,
-        // or just use Admin token for setup)
-        String adminToken = utils.AuthHelper.getAdminToken();
+      String adminToken = utils.AuthHelper.getAdminToken();
 
         Map<String, Object> params = new HashMap<>();
         params.put("parentId", parentId);
@@ -442,11 +425,10 @@ public class CategoryAPISteps {
         // First check if the ID already exists as is
         Response getResp = CategoryApiHelper.getCategoryById(token, id);
 
-        // If it's category 3 and it doesn't exist, create it as per requirement
+      
         if (getResp.getStatusCode() == 404 && id == 3) {
             System.out.println("Category 3 does not exist. Creating 'Botony'...");
 
-            // Using a shortened name "Botony" (6 chars) to satisfy 3-10 char limit
             String body = "{\"name\": \"Botony\"}";
             Response createResp = CategoryApiHelper.createCategory(token, body);
 
@@ -537,7 +519,7 @@ public class CategoryAPISteps {
                 Assert.fail("Failed to create parent category");
             }
         } else if (parentResp.getStatusCode() == 200) {
-            // It exists, use it
+           
         }
 
         // 2. Check children

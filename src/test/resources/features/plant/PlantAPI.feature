@@ -125,7 +125,7 @@ Feature: Plant API Management
   @Admin @API @TC-ADMIN-API-PLANT-001
   Scenario: Create plant successfully (TC-ADMIN-API-PLANT-001)
     Given I have a valid "Admin" token for plant API
-    When I send a POST request to plant endpoint "/api/plants/category/2" with body:
+    When I send a POST request to plant endpoint "/api/plants/category/4" with body:
       """
       {
         "name": "New Plant 001",
@@ -188,39 +188,39 @@ Feature: Plant API Management
     Then the plant response status code should be 400
 
   # User Paged Tests
-  @User @API @TC-USER-UI-PLANT-001
+  @User @API @TC-USER-API-PLANT-001
   Scenario: Fetch paged plants successfully (TC-USER-UI-PLANT-001)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?page=0&size=5"
     Then the plant response status code should be 200
     And the response should contain 5 plants
 
-  @User @API @TC-USER-UI-PLANT-002
+  @User @API @TC-USER-API-PLANT-002
   Scenario: Search by plant name (TC-USER-UI-PLANT-002)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?name=Anthurium"
     Then the plant response status code should be 200
 
-  @User @API @TC-USER-UI-PLANT-003
+  @User @API @TC-USER-API-PLANT-003
   Scenario: Search by categoryId (TC-USER-UI-PLANT-003)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?categoryId=1"
     Then the plant response status code should be 200
 
-  @User @API @TC-USER-UI-PLANT-004
+  @User @API @TC-USER-API-PLANT-004
   Scenario: Combined search filters (TC-USER-UI-PLANT-004)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?name=Rose&categoryId=2"
     Then the plant response status code should be 200
 
-  @User @API @TC-USER-UI-PLANT-005
+  @User @API @TC-USER-API-PLANT-005
   Scenario: Sort by field ascending (TC-USER-UI-PLANT-005)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?sort=name,asc"
     Then the plant response status code should be 200
     And the plants should be sorted by "name" in "asc" order
 
-  @User @API @TC-USER-UI-PLANT-006
+  @User @API @TC-USER-API-PLANT-006
   Scenario: Sort by field descending (TC-USER-UI-PLANT-006)
     Given I have a valid "User" token for plant API
     When I send a GET request to plant endpoint "/api/plants/paged?sort=price,desc"
