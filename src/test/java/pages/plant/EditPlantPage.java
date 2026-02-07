@@ -131,6 +131,18 @@ public class EditPlantPage {
              }
         }
     }
+
+    public void selectFirstCategory() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement element = waitForElement(wait, categorySelect);
+        org.openqa.selenium.support.ui.Select select = new org.openqa.selenium.support.ui.Select(element);
+        // Usually index 0 is "Select Category" or similar, so we try index 1 if available, else index 0
+        if (select.getOptions().size() > 1) {
+            select.selectByIndex(1);
+        } else if (!select.getOptions().isEmpty()) {
+            select.selectByIndex(0);
+        }
+    }
     public boolean isNameErrorDisplayed() {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));

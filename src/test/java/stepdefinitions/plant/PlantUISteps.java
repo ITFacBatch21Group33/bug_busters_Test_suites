@@ -36,10 +36,11 @@ public class PlantUISteps {
             username = utils.ConfigLoader.getProperty("admin.username");
             password = utils.ConfigLoader.getProperty("admin.password");
         }
-        
+
         loginPage.navigateTo(); // Ensure we are on login page
         loginPage.login(username, password);
-        // After login, navigate to Plants page explicitly to ensure we are in the right place for Plant tests
+        // After login, navigate to Plants page explicitly to ensure we are in the right
+        // place for Plant tests
         plantPage.navigateTo();
     }
 
@@ -65,7 +66,7 @@ public class PlantUISteps {
 
     @Given("categories exist in the system")
     public void categories_exist_in_the_system() {
-         // Assumed
+        // Assumed
     }
 
     @When("I enter plant name {string} in the search field")
@@ -115,7 +116,8 @@ public class PlantUISteps {
 
     @Then("only plants in category {string} should be displayed")
     public void only_plants_in_category_should_be_displayed(String category) {
-        // Validation logic - maybe check API or assume UI reflects correctly if not failing
+        // Validation logic - maybe check API or assume UI reflects correctly if not
+        // failing
         // Real validation would check each row's category column if visible
     }
 
@@ -132,11 +134,11 @@ public class PlantUISteps {
     @Then("the plants in the UI should be sorted by {string} in {string} order")
     public void the_plants_in_the_ui_should_be_sorted_by_in_order(String field, String order) {
         if (field.equalsIgnoreCase("name")) {
-             List<String> names = plantPage.getPlantNames();
-             // assert sorted
+            List<String> names = plantPage.getPlantNames();
+            // assert sorted
         } else if (field.equalsIgnoreCase("price")) {
-             List<Double> prices = plantPage.getPlantPrices();
-             // assert sorted
+            List<Double> prices = plantPage.getPlantPrices();
+            // assert sorted
         }
     }
 
@@ -155,9 +157,9 @@ public class PlantUISteps {
     @Then("the {string} button should be visible for plants")
     public void the_button_should_be_visible_for_plants(String btnName) {
         if (btnName.equals("Edit")) {
-             Assert.assertTrue(plantPage.isEditButtonVisible());
+            Assert.assertTrue(plantPage.isEditButtonVisible());
         } else if (btnName.equals("Delete")) {
-             Assert.assertTrue(plantPage.isDeleteButtonVisible());
+            Assert.assertTrue(plantPage.isDeleteButtonVisible());
         }
     }
 
@@ -185,13 +187,14 @@ public class PlantUISteps {
 
     @Then("I should see validation messages for mandatory fields on the Add Plant page")
     public void i_should_see_validation_messages_for_mandatory_fields_on_the_add_plant_page() {
-        Assert.assertTrue(addPage.isNameErrorDisplayed() || addPage.isPriceErrorDisplayed() || addPage.isQuantityErrorDisplayed(),
+        Assert.assertTrue(
+                addPage.isNameErrorDisplayed() || addPage.isPriceErrorDisplayed() || addPage.isQuantityErrorDisplayed(),
                 "Expected at least one validation message for mandatory fields on Add Plant page");
     }
 
     @Then("validation messages should be shown for mandatory fields")
     public void validation_messages_should_be_shown_for_mandatory_fields() {
-         Assert.assertTrue(editPlantPage.isNameErrorDisplayed());
+        Assert.assertTrue(editPlantPage.isNameErrorDisplayed());
     }
 
     @When("I enter a plant name with less than {int} characters")
@@ -201,7 +204,7 @@ public class PlantUISteps {
 
     @Then("an error message for name length should be displayed")
     public void an_error_message_for_name_length_should_be_displayed() {
-         Assert.assertTrue(editPlantPage.isNameErrorDisplayed());
+        Assert.assertTrue(editPlantPage.isNameErrorDisplayed());
     }
 
     @When("I enter a plant name with more than {int} characters")
@@ -219,10 +222,10 @@ public class PlantUISteps {
             long id = System.currentTimeMillis() % 100000;
             name = String.format("Plant%05d", id);
         } else {
-             name = "Valid Name"; 
+            name = "Valid Name";
         }
         editPlantPage.enterName(name);
-        
+
         // Ensure other mandatory fields are filled for the success case
         editPlantPage.enterPrice("25.0");
         editPlantPage.enterQuantity("50");
@@ -233,7 +236,7 @@ public class PlantUISteps {
 
     @Then("the plant should be saved successfully")
     public void the_plant_should_be_saved_successfully() {
-         Assert.assertTrue(plantPage.isPlantListDisplayed());
+        Assert.assertTrue(plantPage.isPlantListDisplayed());
     }
 
     @When("I enter valid details for the plant")
@@ -244,7 +247,7 @@ public class PlantUISteps {
         editPlantPage.enterPrice("20.0");
         editPlantPage.enterQuantity("10");
         // Assuming "Flower" is a valid category in the dropdown based on HTML dump
-        editPlantPage.selectCategory("Flower"); 
+        editPlantPage.selectFirstCategory(); 
     }
 
     @Then("the plant should be added successfully")
@@ -269,17 +272,18 @@ public class PlantUISteps {
 
     @Then("a quantity validation error should be shown")
     public void a_quantity_validation_error_should_be_shown() {
-         Assert.assertTrue(editPlantPage.isQuantityErrorDisplayed());
+        Assert.assertTrue(editPlantPage.isQuantityErrorDisplayed());
     }
 
     @Then("a price validation error should be shown")
     public void a_price_validation_error_should_be_shown() {
-         Assert.assertTrue(editPlantPage.isPriceErrorDisplayed());
+        Assert.assertTrue(editPlantPage.isPriceErrorDisplayed());
     }
 
     @Then("I should not see quantity validation message on the Add Plant page")
     public void i_should_not_see_quantity_validation_message_on_the_add_plant_page() {
-        Assert.assertFalse(addPage.isQuantityErrorDisplayed(), "Expected no quantity validation message on Add Plant page");
+        Assert.assertFalse(addPage.isQuantityErrorDisplayed(),
+                "Expected no quantity validation message on Add Plant page");
     }
 
     @When("I click the Cancel button")
@@ -294,7 +298,7 @@ public class PlantUISteps {
 
     @Then("I should be redirected to the plant list")
     public void i_should_be_redirected_to_the_plant_list() {
-         Assert.assertTrue(plantPage.isPlantListDisplayed());
+        Assert.assertTrue(plantPage.isPlantListDisplayed());
     }
 
     @Then("the plant list is displayed")
