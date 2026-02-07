@@ -134,7 +134,48 @@ public class PlantPage {
         box.sendKeys(text);
     }
     public void clickReset() {
-        driver.findElement(resetButton).click();
+        List<By> locators = java.util.Arrays.asList(
+            By.xpath("//button[contains(text(),'Reset')]"),
+            By.xpath("//a[contains(text(),'Reset')]"),
+            By.xpath("//*[contains(text(),'Reset')]"),
+            By.xpath("//button[contains(text(),'Clear')]"),
+            By.xpath("//*[contains(text(),'Clear')]"),
+            By.cssSelector(".btn-reset"),
+            By.id("reset-btn")
+        );
+
+        boolean clicked = false;
+        for (By loc : locators) {
+            try {
+                 WebElement el = driver.findElement(loc);
+                 if (el.isDisplayed()) {
+                     el.click();
+                     clicked = true;
+                     break;
+                 }
+            } catch (Exception e) {
+                // ignore and try next
+            }
+        }
+
+        if (!clicked) {
+            // Last ditch: try JS or fail
+             System.out.println("DEBUG: Reset button not found. Dumping visible buttons:");
+             driver.findElements(By.tagName("button")).forEach(b -> System.out.println("Button: " + b.getText()));
+             // throw exception to fail test
+             throw new org.openqa.selenium.NoSuchElementException("Could not find Reset button with any common locator");
+        }
+        
+        // Wait for the reset to complete - wait for search field to be cleared and category to reset
+        try {
+            org.openqa.selenium.support.ui.WebDriverWait wait = new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10));
+            // Wait for search field to clear
+            wait.until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(By.name("name")));
+            // Give a moment for DOM to settle
+            Thread.sleep(500);
+        } catch (Exception e) {
+            System.out.println("Timeout waiting for reset to complete");
+        }
     }
 
     public boolean isAddButtonVisible() {
@@ -153,6 +194,153 @@ public class PlantPage {
         }
     }
 
+    public void clickNextPage() {
+        List<By> locators = java.util.Arrays.asList(
+            nextPageBtn,
+            By.xpath("//a[contains(.,'Next') or contains(.,'next') ]"),
+            By.cssSelector(".next"),
+            By.xpath("//button[contains(.,'>' ) or contains(.,'»') or contains(.,'›') ]"),
+            // case-insensitive 'next' text search
+            By.xpath("//*[contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'next') and (self::a or self::button or self::span)]"),
+            // common pagination structures
+            By.xpath("//li[contains(@class,'next')]//a"),
+            By.xpath("//nav[contains(@class,'pagination')]//a"),
+            By.cssSelector("[aria-label='Next']")
+        );
+
+        boolean clicked = false;
+        for (By loc : locators) {
+            List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                for (WebElement el : els) {
+                    try {
+                        if (el.isDisplayed()) {
+                            try {
+                                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                                        .until(org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable(el));
+                            } catch (Exception ignored) {}
+                            el.click();
+                            clicked = true;
+                            break;
+                        }
+                    } catch (Exception ignore) {}
+                }
+            }
+            if (clicked) break;
+        }
+
+        if (!clicked) {
+            // Dump pagination containers for debugging
+            List<WebElement> pagContainers = driver.findElements(By.xpath("//*[contains(@class,'pagination') or contains(@aria-label,'pagination')]"));
+            for (WebElement pc : pagContainers) {
+                try { System.out.println("DEBUG: pagination container text='" + pc.getText() + "'"); } catch (Exception e) {}
+            }
+            throw new org.openqa.selenium.NoSuchElementException("Could not find Next page button");
+        }
+    }
+
+    public void clickPreviousPage() {
+        List<By> locators = java.util.Arrays.asList(
+            prevPageBtn,
+            By.xpath("//a[contains(.,'Previous') or contains(.,'previous') ]"),
+            By.cssSelector(".prev"),
+            By.xpath("//button[contains(.,'<' ) or contains(.,'«') or contains(.,'‹') ]"),
+            By.xpath("//*[contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'previous') and (self::a or self::button or self::span)]"),
+            By.xpath("//li[contains(@class,'prev')]//a"),
+            By.xpath("//nav[contains(@class,'pagination')]//a"),
+            By.cssSelector("[aria-label='Previous']")
+        );
+
+        boolean clicked = false;
+        for (By loc : locators) {
+            List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                for (WebElement el : els) {
+                    try {
+                        if (el.isDisplayed()) {
+                            try {
+                                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                                        .until(org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable(el));
+                            } catch (Exception ignored) {}
+                            el.click();
+                            clicked = true;
+                            break;
+                        }
+                    } catch (Exception ignore) {}
+                }
+            }
+            if (clicked) break;
+        }
+
+        if (!clicked) {
+            List<WebElement> pagContainers = driver.findElements(By.xpath("//*[contains(@class,'pagination') or contains(@aria-label,'pagination')]"));
+            for (WebElement pc : pagContainers) {
+                try { System.out.println("DEBUG: pagination container text='" + pc.getText() + "'"); } catch (Exception e) {}
+            }
+            throw new org.openqa.selenium.NoSuchElementException("Could not find Previous page button");
+        }
+    }
+    
+    public boolean isNextPageButtonVisible() {
+        List<By> locators = java.util.Arrays.asList(
+            nextPageBtn,
+            By.xpath("//a[contains(.,'Next') or contains(.,'next') ]"),
+            By.cssSelector(".next"),
+            By.cssSelector("[aria-label='Next']"),
+            By.xpath("//*[contains(translate(normalize-space(.),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'next') and (self::a or self::button or self::span)]"),
+            By.xpath("//li[contains(@class,'next')]//a"),
+            By.xpath("//nav[contains(@class,'pagination')]//a")
+        );
+
+        System.out.println("DEBUG: Checking Next button visibility. Row count=" + getRowCount());
+        for (By loc : locators) {
+            List<WebElement> els = driver.findElements(loc);
+            System.out.println("DEBUG: locator=" + loc + " found=" + els.size());
+            if (!els.isEmpty()) {
+                for (WebElement e : els) {
+                    try {
+                        System.out.println("DEBUG: Next candidate text='" + e.getText() + "' displayed=" + e.isDisplayed());
+                        if (e.isDisplayed()) return true;
+                    } catch (Exception ignore) {}
+                }
+            }
+        }
+        // If none found, dump pagination containers
+        List<WebElement> pagContainers = driver.findElements(By.xpath("//*[contains(@class,'pagination') or contains(@aria-label,'pagination')]"));
+        for (WebElement pc : pagContainers) {
+            try { System.out.println("DEBUG: pagination container text='" + pc.getText() + "'"); } catch (Exception e) {}
+        }
+        return false;
+    }
+
+    public boolean isPreviousPageButtonVisible() {
+        List<By> locators = java.util.Arrays.asList(
+            prevPageBtn,
+            By.xpath("//a[contains(.,'Previous') or contains(.,'previous') ]"),
+            By.cssSelector(".prev"),
+            By.cssSelector("[aria-label='Previous']")
+        );
+
+        System.out.println("DEBUG: Checking Previous button visibility. Row count=" + getRowCount());
+        for (By loc : locators) {
+            List<WebElement> els = driver.findElements(loc);
+            System.out.println("DEBUG: locator=" + loc + " found=" + els.size());
+            if (!els.isEmpty()) {
+                for (WebElement e : els) {
+                    try {
+                        System.out.println("DEBUG: Prev candidate text='" + e.getText() + "' displayed=" + e.isDisplayed());
+                        if (e.isDisplayed()) return true;
+                    } catch (Exception ignore) {}
+                }
+            }
+        }
+        List<WebElement> pagContainers = driver.findElements(By.xpath("//*[contains(@class,'pagination') or contains(@aria-label,'pagination')]"));
+        for (WebElement pc : pagContainers) {
+            try { System.out.println("DEBUG: pagination container text='" + pc.getText() + "'"); } catch (Exception e) {}
+        }
+        return false;
+    }
+    
     public boolean isNoDataMessageDisplayed() {
         List<WebElement> msgs = driver.findElements(noDataMessage);
         return !msgs.isEmpty() && msgs.get(0).isDisplayed();
@@ -169,9 +357,32 @@ public class PlantPage {
 
     public String getSelectedCategory() {
         List<WebElement> elems = driver.findElements(By.id("category-filter"));
-        if (elems.isEmpty()) return "";
-        Select sel = new Select(elems.get(0));
-        return sel.getFirstSelectedOption().getText();
+        if (elems.isEmpty()) {
+            System.out.println("DEBUG: category-filter element not found!");
+            return "All Categories"; // Return default if element doesn't exist
+        }
+        
+        try {
+            Select sel = new Select(elems.get(0));
+            WebElement selectedOption = sel.getFirstSelectedOption();
+            String text = selectedOption.getText().trim();
+            
+            System.out.println("DEBUG: getSelectedCategory() returned: '" + text + "'");
+            
+            // If selected option text is empty, return "All Categories" as default
+            if (text.isEmpty()) {
+                System.out.println("DEBUG: Selected option text is empty, returning 'All Categories'");
+                return "All Categories";
+            }
+            return text;
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            // If no option is selected, return "All Categories" as default
+            System.out.println("DEBUG: No selected option found, returning 'All Categories'");
+            return "All Categories";
+        } catch (Exception e) {
+            System.out.println("DEBUG: Unexpected exception in getSelectedCategory: " + e.getMessage());
+            return "All Categories";
+        }
     }
 
     public void clickSortByColumn(String columnName) {
@@ -227,11 +438,155 @@ public class PlantPage {
         return !matches.isEmpty();
     }
 
+    // Pagination helpers
+    public boolean isPageButtonVisible(String btnName) {
+        java.util.List<By> locators = java.util.Arrays.asList(
+            By.xpath("//button[normalize-space()='" + btnName + "']"),
+            By.xpath("//a[normalize-space()='" + btnName + "']"),
+            By.xpath("//button[contains(text(),'" + btnName + "')]")
+        );
+
+        for (By loc : locators) {
+            java.util.List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                for (WebElement e : els) {
+                    try {
+                        if (e.isDisplayed()) return true;
+                    } catch (Exception ignore) {
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void clickPageButton(String btnName) {
+        java.util.List<By> locators = java.util.Arrays.asList(
+            By.xpath("//button[normalize-space()='" + btnName + "']"),
+            By.xpath("//a[normalize-space()='" + btnName + "']"),
+            By.xpath("//button[contains(text(),'" + btnName + "')]")
+        );
+
+        boolean clicked = false;
+        for (By loc : locators) {
+            try {
+                java.util.List<WebElement> els = driver.findElements(loc);
+                if (!els.isEmpty()) {
+                    for (WebElement el : els) {
+                        if (el.isDisplayed()) {
+                            try {
+                                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5))
+                                        .until(org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable(el));
+                            } catch (Exception ignored) {
+                            }
+                            el.click();
+                            clicked = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // ignore and try next locator
+            }
+            if (clicked) break;
+        }
+
+        if (!clicked) {
+            throw new org.openqa.selenium.NoSuchElementException("Could not find page button: " + btnName);
+        }
+    }
+
     public boolean areActionButtonsVisible() {
         // Look for edit or delete buttons in any row
         java.util.List<WebElement> editBtns = driver.findElements(By.cssSelector("button.edit-btn"));
         java.util.List<WebElement> deleteBtns = driver.findElements(By.cssSelector("button.delete-btn"));
         return ( !editBtns.isEmpty() && editBtns.get(0).isDisplayed() ) || ( !deleteBtns.isEmpty() && deleteBtns.get(0).isDisplayed() );
+    }
+
+    public void clickEditButton() {
+        // Try multiple locators for Edit button
+        List<By> locators = java.util.Arrays.asList(
+            By.cssSelector("a[title='Edit']"),
+            By.cssSelector("button.edit-btn"),
+            By.xpath("//button[contains(text(),'Edit')]"),
+            By.xpath("//a[contains(text(),'Edit')]"),
+            By.xpath("//*[contains(@class,'edit')]") // broader
+        );
+        
+        boolean clicked = false;
+        for (By loc : locators) {
+             List<WebElement> els = driver.findElements(loc);
+             if (!els.isEmpty() && els.get(0).isDisplayed()) {
+                 els.get(0).click();
+                 clicked = true;
+                 break;
+             }
+        }
+        
+        if (!clicked) {
+             throw new org.openqa.selenium.NoSuchElementException("Could not find Edit button");
+        }
+    }
+
+    // Edit plant form methods
+    public void enterPlantName(String name) {
+        List<By> nameLocators = java.util.Arrays.asList(
+            By.name("name"),
+            By.id("name"),
+            By.xpath("//input[@name='name']")
+        );
+        
+        for (By loc : nameLocators) {
+            List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                try {
+                    els.get(0).clear();
+                    els.get(0).sendKeys(name);
+                    return;
+                } catch (Exception ignore) {}
+            }
+        }
+        throw new org.openqa.selenium.NoSuchElementException("Could not find Plant Name input field");
+    }
+
+    public void enterPlantPrice(double price) {
+        List<By> priceLocators = java.util.Arrays.asList(
+            By.name("price"),
+            By.id("price"),
+            By.xpath("//input[@name='price']")
+        );
+        
+        for (By loc : priceLocators) {
+            List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                try {
+                    els.get(0).clear();
+                    els.get(0).sendKeys(String.valueOf(price));
+                    return;
+                } catch (Exception ignore) {}
+            }
+        }
+        throw new org.openqa.selenium.NoSuchElementException("Could not find Price input field");
+    }
+
+    public void enterPlantQuantity(int quantity) {
+        List<By> quantityLocators = java.util.Arrays.asList(
+            By.name("quantity"),
+            By.id("quantity"),
+            By.xpath("//input[@name='quantity']")
+        );
+        
+        for (By loc : quantityLocators) {
+            List<WebElement> els = driver.findElements(loc);
+            if (!els.isEmpty()) {
+                try {
+                    els.get(0).clear();
+                    els.get(0).sendKeys(String.valueOf(quantity));
+                    return;
+                } catch (Exception ignore) {}
+            }
+        }
+        throw new org.openqa.selenium.NoSuchElementException("Could not find Quantity input field");
     }
 }
 

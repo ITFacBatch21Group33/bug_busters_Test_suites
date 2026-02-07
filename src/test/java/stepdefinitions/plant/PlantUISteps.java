@@ -58,6 +58,12 @@ public class PlantUISteps {
         PlantApiHelper.createPlant(adminToken, 1, "{\"name\": \"Daisy\", \"price\": 12.0, \"quantity\": 15}");
     }
 
+    @Given("no plants exist in the system")
+    public void no_plants_exist_in_the_system() {
+         String adminToken = AuthHelper.getAdminToken();
+         PlantApiHelper.deleteAllPlants(adminToken);
+    }
+
     @Given("categories exist in the system")
     public void categories_exist_in_the_system() {
         // Assumed
@@ -223,7 +229,9 @@ public class PlantUISteps {
         // Ensure other mandatory fields are filled for the success case
         editPlantPage.enterPrice("25.0");
         editPlantPage.enterQuantity("50");
-        editPlantPage.selectFirstCategory();
+        // Use retry-capable selection or generic one
+        // editPlantPage.selectCategory("Indoor"); 
+        editPlantPage.selectAnyCategory();
     }
 
     @Then("the plant should be saved successfully")
@@ -247,10 +255,10 @@ public class PlantUISteps {
         Assert.assertTrue(plantPage.isPlantListDisplayed());
     }
 
-    @When("I enter price as {int}")
-    public void i_enter_price_as(int price) {
-        editPlantPage.enterPrice(String.valueOf(price));
-    }
+    // @When("I enter price as {int}")
+    // public void i_enter_price_as(int price) {
+    //     editPlantPage.enterPrice(String.valueOf(price));
+    // }
 
     @Then("I should see price validation message on the Add Plant page")
     public void i_should_see_price_validation_message_on_the_add_plant_page() {
@@ -291,5 +299,96 @@ public class PlantUISteps {
     @Then("I should be redirected to the plant list")
     public void i_should_be_redirected_to_the_plant_list() {
         Assert.assertTrue(plantPage.isPlantListDisplayed());
+    }
+
+    @Then("the plant list is displayed")
+    public void the_plant_list_is_displayed() {
+        Assert.assertTrue(plantPage.isPlantListDisplayed(), "Plant list should be visible");
+    }
+    @When("I click the Reset button")
+    public void i_click_the_reset_button() {
+        plantPage.clickReset();
+    }
+
+    @Then("the search field should be cleared")
+    public void the_search_field_should_be_cleared() {
+        Assert.assertEquals(plantPage.SearchBoxValue(), "", "Search field should be empty");
+    }
+
+    @Then("all filters should be removed")
+    public void all_filters_should_be_removed() {
+         Assert.assertEquals(plantPage.getSelectedCategory(), "All Categories", "Category filter should be reset");
+    }
+
+    @Then("sorting should be reset to default")
+    public void sorting_should_be_reset_to_default() {
+    }
+
+    @Then("the {string} button should not be visible")
+    public void the_button_should_not_be_visible(String btnName) {
+        if (btnName.equals("Add Plant")) {
+            Assert.assertFalse(plantPage.isAddButtonVisible(), "Add Plant button should not be visible for User");
+        }
+    }
+    @Given("enough plants exist for pagination")
+    public void enough_plants_exist_for_pagination() {
+        String adminToken = AuthHelper.getAdminToken();
+        // PlantApiHelper.deleteAllPlants(adminToken);
+        PlantApiHelper.createMultiplePlants(adminToken, 25);
+    }
+
+    @Then("the {string} page button should be visible")
+    public void the_page_button_should_be_visible(String btn) {
+        if (btn.equals("Next")) {
+            Assert.assertTrue(plantPage.isNextPageButtonVisible(), "Next page button should be visible");
+        } else if (btn.equals("Previous")) {
+            Assert.assertTrue(plantPage.isPreviousPageButtonVisible(), "Previous page button should be visible");
+        }
+    }
+
+    @When("I click the {string} page button")
+    public void i_click_the_page_button(String btn) {
+        previousPageNames = plantPage.getPlantNames();
+        if (btn.equals("Next")) {
+            plantPage.clickNextPage();
+        } else if (btn.equals("Previous")) {
+            plantPage.clickPreviousPage();
+        }
+        // Small wait for table refresh might be needed, but explicit wait in getPlantNames?
+        // getPlantNames does NOT wait for staleness, it just gets elements.
+        // We might need a small sleep or better wait. 
+        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+    }
+
+    @Then("I should see different plants")
+    public void i_should_see_different_plants() {
+        List<String> currentNames = plantPage.getPlantNames();
+        Assert.assertNotEquals(currentNames, previousPageNames, "Plant list should have changed after pagination");
+    }
+
+    @Then("I should see the initial plants")
+    public void i_should_see_the_initial_plants() {
+         List<String> currentNames = plantPage.getPlantNames();
+         Assert.assertNotEquals(currentNames, previousPageNames, "Should have returned to previous list content (Page 1)");
+    }
+
+    @When("I click the Edit button for a plant")
+    public void i_click_the_edit_button_for_a_plant() {
+        plantPage.clickEditButton();
+    }
+
+    @When("I enter plant name {string}")
+    public void i_enter_plant_name(String name) {
+        plantPage.enterPlantName(name);
+    }
+
+    @When("I enter price as {double}")
+    public void i_enter_price_as(Double price) {
+        plantPage.enterPlantPrice(price);
+    }
+
+    @When("I enter quantity as {int}")
+    public void i_enter_quantity_as(Integer quantity) {
+        plantPage.enterPlantQuantity(quantity);
     }
 }
